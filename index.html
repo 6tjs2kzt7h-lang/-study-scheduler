@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>極簡讀書規劃與計時器 (每週統計與手動教材版)</title>
+    <title>極簡讀書規劃與計時器 (範圍與詳細時間版)</title>
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -81,25 +81,36 @@
 
     <!-- ================= TIMER ================= -->
     <section class="card p-6">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="space-y-3 w-full md:w-auto">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div class="space-y-3 w-full lg:w-auto flex-1">
                 <h2 class="font-bold text-lg mb-2">
-                    <i class="fa-solid fa-stopwatch mr-2"></i> 讀書計時器 (自動紀錄)
+                    <i class="fa-solid fa-stopwatch mr-2"></i> 讀書計時器與範圍設定
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <select id="timer-subject" class="border rounded-lg px-3 py-2">
+                    <select id="timer-subject" class="border rounded-lg px-3 py-2 text-sm">
                         <option value="">請選擇科目</option>
                     </select>
-                    <select id="timer-material" class="border rounded-lg px-3 py-2">
+                    <select id="timer-material" class="border rounded-lg px-3 py-2 text-sm">
                         <option value="">請先選擇科目</option>
                     </select>
                 </div>
+                <!-- 讀書範圍選填 -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">起始頁碼 (選填)</label>
+                        <input id="timer-start-page" type="number" min="1" placeholder="例如：1" class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">結束頁碼 (選填)</label>
+                        <input id="timer-end-page" type="number" min="1" placeholder="例如：15" class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+                    </div>
+                </div>
                 <div class="flex items-center gap-3 pt-2">
-                    <button id="timer-start" class="bg-black text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 font-medium">開始計時</button>
-                    <button id="timer-stop" class="hidden bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 font-medium">停止並儲存紀錄</button>
+                    <button id="timer-start" class="bg-black text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 font-medium text-sm">開始計時</button>
+                    <button id="timer-stop" class="hidden bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 font-medium text-sm">停止並儲存紀錄</button>
                 </div>
             </div>
-            <div class="text-center bg-gray-50 px-8 py-6 rounded-2xl border w-full md:w-auto">
+            <div class="text-center bg-gray-50 px-8 py-6 rounded-2xl border w-full lg:w-auto">
                 <div id="timer-display" class="text-5xl font-mono font-bold tracking-wider">00:00:00</div>
                 <div id="timer-status" class="text-sm text-gray-500 mt-2">尚未開始計時</div>
             </div>
@@ -113,14 +124,14 @@
             <div id="kpi-total-subjects" class="text-3xl font-bold mt-2">0</div>
         </div>
         <div class="card p-5">
-            <div class="text-sm text-gray-500">已讀總頁數</div>
+            <div class="text-sm text-gray-500">已讀總頁數 (累計)</div>
             <div class="text-3xl font-bold mt-2">
                 <span id="kpi-completed-pages-number">0</span>
                 <span class="text-lg">頁</span>
             </div>
         </div>
         <div class="card p-5">
-            <div class="text-sm text-gray-500">整體平均進度</div>
+            <div class="text-sm text-gray-500">全部教材平均進度</div>
             <div id="kpi-avg-progress" class="text-3xl font-bold mt-2">0%</div>
         </div>
     </section>
@@ -138,11 +149,11 @@
                 <form id="subject-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-1">科目名稱</label>
-                        <input id="sub-name" type="text" placeholder="例如：工程數學" class="w-full border rounded-lg px-3 py-2" required>
+                        <input id="sub-name" type="text" placeholder="例如：工程數學" class="w-full border rounded-lg px-3 py-2 text-sm" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">考試日期 (選填)</label>
-                        <input id="sub-exam-date" type="date" class="w-full border rounded-lg px-3 py-2">
+                        <input id="sub-exam-date" type="date" class="w-full border rounded-lg px-3 py-2 text-sm">
                     </div>
                     
                     <div class="border-t pt-4">
@@ -166,7 +177,7 @@
                         <div id="mode-manual-container" class="hidden space-y-3 bg-gray-50 p-3 rounded-xl border">
                             <div>
                                 <label class="block text-xs font-medium mb-1 text-gray-600">教材名稱</label>
-                                <input id=" manual-mat-name" type="text" placeholder="例如：第1章 向量空間" class="w-full border rounded-lg px-3 py-1.5 text-sm bg-white">
+                                <input id="manual-mat-name" type="text" placeholder="例如：第1章 向量空間" class="w-full border rounded-lg px-3 py-1.5 text-sm bg-white">
                             </div>
                             <div class="flex gap-2 items-center">
                                 <div class="flex-1">
@@ -184,7 +195,7 @@
 
                     <div id="material-preview" class="space-y-2 pt-2"></div>
 
-                    <button type="submit" class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 font-medium">
+                    <button type="submit" class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 font-medium text-sm">
                         <i class="fa-solid fa-plus mr-2"></i> 建立科目
                     </button>
                 </form>
@@ -194,7 +205,7 @@
             <section class="card p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h2 class="font-bold text-lg">
-                        <i class="fa-solid fa-layer-group mr-2"></i> 我的科目與教材
+                        <i class="fa-solid fa-layer-group mr-2"></i> 我的科目與教材 (含單科進度)
                     </h2>
                 </div>
                 <div id="subject-list" class="space-y-4">
@@ -218,7 +229,7 @@
                 </div>
             </section>
 
-            <!-- 每日詳細紀錄 (以星期為主) -->
+            <!-- 每日詳細紀錄 -->
             <section class="card p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h2 class="font-bold text-lg">
@@ -232,9 +243,9 @@
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="border-b text-left text-gray-500">
-                                <th class="py-3 pr-3">星期 / 日期</th>
-                                <th class="py-3 pr-3">科目 / 教材</th>
-                                <th class="py-3 pr-3">計時時間 (精確到秒)</th>
+                                <th class="py-3 pr-3">時間區間 / 日期</th>
+                                <th class="py-3 pr-3">科目 / 教材 / 範圍</th>
+                                <th class="py-3 pr-3">計時長度</th>
                                 <th class="py-3">操作</th>
                             </tr>
                         </thead>
@@ -246,7 +257,7 @@
     </div>
 </main>
 
-<!-- Modal: 針對既有科目手動加教材的彈窗或區塊 -->
+<!-- Modal: 針對既有科目手動加教材的彈窗 -->
 <div id="modal-add-manual" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
         <h3 class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2"></i> 手動新增教材</h3>
@@ -290,8 +301,8 @@
     let userData = { subjects: [], schedules: [] };
     let pendingMaterials = [];
     let currentEditingSubjectId = null;
+    let timerStartTime = null; // 記錄開始計時的精確時間
 
-    // 登入按鈕
     document.getElementById("login-btn").addEventListener("click", async () => {
         try {
             await signInWithPopup(auth, provider);
@@ -376,7 +387,6 @@
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
-    // 切換新增教材模式 (PDF 或是 手動)
     const addModeRadios = document.querySelectorAll('input[name="add-mode"]');
     const modePdfContainer = document.getElementById("mode-pdf-container");
     const modeManualContainer = document.getElementById("mode-manual-container");
@@ -393,7 +403,6 @@
         });
     });
 
-    // 處理上傳 PDF
     const materialFiles = document.getElementById("material-files");
     materialFiles.addEventListener("change", async event => {
         const files = Array.from(event.target.files || []);
@@ -423,7 +432,6 @@
         renderPendingMaterials();
     });
 
-    // 處理表單內手動加入教材
     document.getElementById("add-manual-material-btn").addEventListener("click", () => {
         const nameInput = document.getElementById("manual-mat-name");
         const pagesInput = document.getElementById("manual-mat-pages");
@@ -471,7 +479,6 @@
         renderPendingMaterials();
     };
 
-    // 建立科目
     document.getElementById("subject-form").addEventListener("submit", event => {
         event.preventDefault();
         if (!currentUser) { alert("請先登入"); return; }
@@ -497,33 +504,6 @@
         renderApp();
     });
 
-    // 追加 PDF 到既有科目
-    window.addMoreMaterialsToSubject = async function(subjectId, event) {
-        const files = Array.from(event.target.files || []);
-        if (files.length === 0) return;
-        const subject = userData.subjects.find(s => s.id == subjectId);
-        if (!subject) return;
-
-        for (let file of files) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                subject.materials.push({
-                    id: makeId(),
-                    fileName: file.name,
-                    target: pdf.numPages,
-                    current: 0,
-                    type: "pdf"
-                });
-                if (pdf.destroy) await pdf.destroy();
-            } catch (e) { console.error(e); }
-        }
-        saveUserData();
-        renderApp();
-        event.target.value = "";
-    };
-
-    // 開啟手動新增教材彈窗（針對既有科目）
     window.openModalManualAdd = function(subjectId) {
         currentEditingSubjectId = subjectId;
         document.getElementById("modal-mat-name").value = "";
@@ -569,14 +549,6 @@
         renderApp();
     };
 
-    window.deleteMaterial = function(subjectId, materialId) {
-        const subject = userData.subjects.find(s => s.id == subjectId);
-        if (!subject) return;
-        subject.materials = subject.materials.filter(m => m.id != materialId);
-        saveUserData();
-        renderApp();
-    };
-
     window.deleteSchedule = function(scheduleId) {
         if (!confirm("確定要刪除這筆紀錄嗎？")) return;
         userData.schedules = userData.schedules.filter(s => s.id != scheduleId);
@@ -584,7 +556,6 @@
         renderApp();
     };
 
-    // 計時器區塊連動
     const timerSubjectSelect = document.getElementById("timer-subject");
     const timerMaterialSelect = document.getElementById("timer-material");
 
@@ -597,7 +568,7 @@
             subject.materials.forEach(m => {
                 const opt = document.createElement("option");
                 opt.value = m.id;
-                opt.textContent = `${m.fileName} (${m.target}頁)`;
+                opt.textContent = `${m.fileName} (總計 ${m.target}頁，目前已讀 ${m.current}頁)`;
                 timerMaterialSelect.appendChild(opt);
             });
         }
@@ -622,10 +593,13 @@
         const matId = timerMaterialSelect.value;
         if (!subId || !matId) { alert("請先選擇科目與教材再開始計時！"); return; }
 
+        timerStartTime = new Date();
         timerStartBtn.classList.add("hidden");
         timerStopBtn.classList.remove("hidden");
         timerSubjectSelect.disabled = true;
         timerMaterialSelect.disabled = true;
+        document.getElementById("timer-start-page").disabled = true;
+        document.getElementById("timer-end-page").disabled = true;
         timerStatus.textContent = "計時中...";
 
         timerInterval = setInterval(() => {
@@ -641,33 +615,58 @@
         const subject = userData.subjects.find(s => s.id == subId);
         const material = subject?.materials.find(m => m.id == matId);
 
+        const startPageInput = document.getElementById("timer-start-page").value;
+        const endPageInput = document.getElementById("timer-end-page").value;
+        const startPage = startPageInput ? parseInt(startPageInput) : null;
+        const endPage = endPageInput ? parseInt(endPageInput) : null;
+
         if (secondsElapsed > 0 && subject && material) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
+            const timerEndTime = new Date();
+            
+            // 格式化日期與時間區間：幾年幾月幾日幾點讀到幾點
+            const pad = (n) => String(n).padStart(2, '0');
+            const yyyy = timerStartTime.getFullYear();
+            const mm = pad(timerStartTime.getMonth() + 1);
+            const dd = pad(timerStartTime.getDate());
+            
+            const startTimeStr = `${pad(timerStartTime.getHours())}:${pad(timerStartTime.getMinutes())}`;
+            const endTimeStr = `${pad(timerEndTime.getHours())}:${pad(timerEndTime.getMinutes())}`;
+            const dateTimeRangeStr = `${yyyy}年${mm}月${dd}日 ${startTimeStr} ~ ${endTimeStr}`;
             
             const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-            const weekdayStr = weekdays[now.getDay()];
-            const weekNumber = getWeekNumber(now);
+            const weekdayStr = weekdays[timerStartTime.getDay()];
+            const weekNumber = getWeekNumber(timerStartTime);
+
+            // 如果有填寫範圍，計算本次閱讀進度並更新教材已讀頁數
+            let rangeStr = "未指定範圍";
+            if (startPage !== null && endPage !== null && endPage >= startPage) {
+                rangeStr = `第 ${startPage} ~ ${endPage} 頁`;
+                const pagesReadCount = (endPage - startPage) + 1;
+                // 更新該教材已讀頁數（不超過總頁數）
+                material.current = Math.min(material.target, (Number(material.current) || 0) + pagesReadCount);
+            } else if (endPage !== null) {
+                rangeStr = `至第 ${endPage} 頁`;
+                material.current = Math.min(material.target, endPage);
+            }
 
             const record = {
                 id: makeId(),
-                date: dateStr,
+                date: `${yyyy}-${mm}-${dd}`,
+                dateTimeRange: dateTimeRangeStr,
                 weekday: weekdayStr,
-                weekNumber: `${year}-W${weekNumber}`,
+                weekNumber: `${yyyy}-W${weekNumber}`,
                 subjectId: subId,
                 subjectName: subject.name,
                 materialId: matId,
                 fileName: material.fileName,
+                range: rangeStr,
                 seconds: secondsElapsed,
                 timeFormatted: formatTime(secondsElapsed)
             };
 
             userData.schedules.push(record);
             saveUserData();
-            alert(`已成功儲存！本次計時：${formatTime(secondsElapsed)}`);
+            alert(`已成功儲存！\n時間：${dateTimeRangeStr}\n本次計時：${formatTime(secondsElapsed)}`);
         }
 
         clearInterval(timerInterval);
@@ -677,6 +676,10 @@
         timerStopBtn.classList.add("hidden");
         timerSubjectSelect.disabled = false;
         timerMaterialSelect.disabled = false;
+        document.getElementById("timer-start-page").disabled = false;
+        document.getElementById("timer-end-page").disabled = false;
+        document.getElementById("timer-start-page").value = "";
+        document.getElementById("timer-end-page").value = "";
         timerStatus.textContent = "尚未開始計時";
         renderApp();
     });
@@ -689,12 +692,11 @@
         return weekNo;
     }
 
-    // CSV 匯出
     document.getElementById("export-csv").addEventListener("click", () => {
         if (userData.schedules.length === 0) { alert("目前沒有紀錄"); return; }
-        let csv = "\uFEFF日期,星期,每週標籤,科目,教材,秒數,時間格式\n";
+        let csv = "\uFEFF日期時間,星期,每週標籤,科目,教材,閱讀範圍,秒數,時間格式\n";
         userData.schedules.forEach(s => {
-            csv += `${s.date},${s.weekday},${s.weekNumber},"${s.subjectName}","${s.fileName}",${s.seconds},${s.timeFormatted}\n`;
+            csv += `"${s.dateTimeRange}",${s.weekday},${s.weekNumber},"${s.subjectName}","${s.fileName}","${s.range}",${s.seconds},${s.timeFormatted}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -716,8 +718,10 @@
         });
         timerSubjectSelect.value = currentSubVal;
 
+        // 計算整體與單科進度
         let totalSubjects = userData.subjects.length;
         let completedPages = 0, totalPages = 0;
+
         userData.subjects.forEach(s => {
             if (s.materials) {
                 s.materials.forEach(m => {
@@ -732,12 +736,21 @@
         document.getElementById("kpi-completed-pages-number").textContent = completedPages;
         document.getElementById("kpi-avg-progress").textContent = `${avgProgress}%`;
 
-        // 渲染科目清單
+        // 渲染科目與單科進度條
         const subListEl = document.getElementById("subject-list");
         if (userData.subjects.length === 0) {
             subListEl.innerHTML = `<div class="text-center text-gray-400 py-8">尚未建立科目</div>`;
         } else {
             subListEl.innerHTML = userData.subjects.map(s => {
+                let subTarget = 0, subCurrent = 0;
+                if (s.materials) {
+                    s.materials.forEach(m => {
+                        subTarget += Number(m.target) || 0;
+                        subCurrent += Number(m.current) || 0;
+                    });
+                }
+                let subProgress = subTarget > 0 ? Math.round((subCurrent / subTarget) * 100) : 0;
+
                 return `
                     <div class="border rounded-xl p-4 bg-white space-y-3">
                         <div class="flex items-center justify-between">
@@ -747,102 +760,110 @@
                             </div>
                             <button onclick="deleteSubject('${s.id}')" class="text-gray-400 hover:text-red-600 text-sm"><i class="fa-solid fa-trash"></i></button>
                         </div>
+
+                        <!-- 單科進度條 -->
+                        <div class="space-y-1 bg-gray-50 p-2.5 rounded-lg border">
+                            <div class="flex justify-between text-xs font-medium text-gray-600">
+                                <span>單科閱讀進度</span>
+                                <span>${subCurrent} / ${subTarget} 頁 (${subProgress}%)</span>
+                            </div>
+                            <div class="progress-bg">
+                                <div class="progress-bar" style="width: ${subProgress}%"></div>
+                            </div>
+                        </div>
+
                         <div class="border-t pt-3 space-y-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-medium text-gray-600">教材清單：</span>
-                                <div class="flex gap-1.5">
-                                    <button onclick="openModalManualAdd('${s.id}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-md cursor-pointer">
-                                        <i class="fa-solid fa-plus mr-1"></i>手動加教材
-                                    </button>
-                                    <label class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-md cursor-pointer">
-                                        <i class="fa-solid fa-file-pdf mr-1"></i>加PDF
-                                        <input type="file" accept=".pdf,application/pdf" multiple class="hidden" onchange="addMoreMaterialsToSubject('${s.id}', event)">
-                                    </label>
-                                </div>
+                                <button onclick="openModalManualAdd('${s.id}')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-md font-medium">
+                                    <i class="fa-solid fa-plus mr-1"></i>新增教材
+                                </button>
                             </div>
-                            ${(!s.materials || s.materials.length === 0) ? `<div class="text-xs text-gray-400 py-1">尚未加入教材</div>` : ''}
-                            ${(s.materials || []).map(m => `
-                                <div class="flex items-center justify-between text-xs bg-gray-50 p-2 rounded-lg">
-                                    <div class="truncate mr-2">
-                                        <i class="fa-solid ${m.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-book text-blue-500'} mr-1"></i>
-                                        ${escapeHtml(m.fileName)} (${m.target}頁)
+                            <div class="space-y-1.5">
+                                ${s.materials && s.materials.length > 0 ? s.materials.map(m => `
+                                    <div class="flex items-center justify-between text-xs bg-gray-50 border px-3 py-2 rounded-lg">
+                                        <div class="truncate mr-2">
+                                            <i class="fa-solid ${m.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-book text-blue-500'} mr-1"></i>
+                                            <span class="font-medium">${escapeHtml(m.fileName)}</span>
+                                            <span class="text-gray-500 ml-1">(已讀 ${m.current \vert{}\vert{} 0}/${m.target}頁)</span>
+                                        </div>
+                                        <button onclick="deleteMaterial('${s.id}', '${m.id}')" class="text-gray-400 hover:text-red-600"><i class="fa-solid fa-xmark"></i></button>
                                     </div>
-                                    <button onclick="deleteMaterial('${s.id}', '${m.id}')" class="text-gray-400 hover:text-red-600"><i class="fa-solid fa-xmark"></i></button>
-                                </div>
-                            `).join("")}
+                                `).join('') : '<div class="text-xs text-gray-400 py-1">尚無教材</div>'}
+                            </div>
                         </div>
                     </div>
                 `;
-            }).join("");
+            }).join('');
         }
 
+        // 渲染每日紀錄表格
         const scheduleListEl = document.getElementById("schedule-list");
         if (userData.schedules.length === 0) {
             scheduleListEl.innerHTML = `<tr><td colspan="4" class="text-center text-gray-400 py-6">尚無計時紀錄</td></tr>`;
         } else {
-            const sorted = [...userData.schedules].reverse();
-            scheduleListEl.innerHTML = sorted.map(sch => `
-                <tr class="border-b">
-                    <td class="py-3 pr-3 font-medium">${sch.weekday}<br><span class="text-xs text-gray-400">${sch.date}</span></td>
-                    <td class="py-3 pr-3"><span class="font-bold">${escapeHtml(sch.subjectName)}</span><br><span class="text-xs text-gray-500">${escapeHtml(sch.fileName)}</span></td>
-                    <td class="py-3 pr-3 font-mono font-semibold text-black">${sch.timeFormatted}</td>
+            // 依時間倒序排列
+            const sortedSchedules = [...userData.schedules].reverse();
+            scheduleListEl.innerHTML = sortedSchedules.map(sc => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-3 pr-3">
+                        <div class="font-medium text-xs">${escapeHtml(sc.dateTimeRange)}</div>
+                        <div class="text-gray-400 text-xs">${sc.weekday}</div>
+                    </td>
+                    <td class="py-3 pr-3">
+                        <div class="font-medium">${escapeHtml(sc.subjectName)}</div>
+                        <div class="text-gray-500 text-xs">${escapeHtml(sc.fileName)} <span class="text-black font-semibold">(${escapeHtml(sc.range)})</span></div>
+                    </td>
+                    <td class="py-3 pr-3 font-mono font-medium">
+                        ${sc.timeFormatted}
+                    </td>
                     <td class="py-3">
-                        <button onclick="deleteSchedule('${sch.id}')" class="text-gray-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="deleteSchedule('${sc.id}')" class="text-gray-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
-            `).join("");
+            `).join('');
         }
 
-        renderWeeklyReport();
-    }
-
-    function renderWeeklyReport() {
-        const reportEl = document.getElementById("weekly-report-content");
-        const weekLabelEl = document.getElementById("current-week-label");
+        // 渲染每週統整報告
+        const weeklyReportEl = document.getElementById("weekly-report-content");
+        const currentWeekLabelEl = document.getElementById("current-week-label");
         
         if (userData.schedules.length === 0) {
-            reportEl.innerHTML = `<div class="text-center text-gray-400 py-6">本週尚無讀書計時紀錄</div>`;
-            weekLabelEl.textContent = "目前無資料";
-            return;
+            weeklyReportEl.innerHTML = `<div class="text-center text-gray-400 py-6">本週尚無讀書計時紀錄</div>`;
+            currentWeekLabelEl.textContent = "目前週次";
+        } else {
+            const now = new Date();
+            const currentWeekKey = `${now.getFullYear()}-W${getWeekNumber(now)}`;
+            currentWeekLabelEl.textContent = `本週週次：${currentWeekKey}`;
+
+            const weeklySchedules = userData.schedules.filter(s => s.weekNumber === currentWeekKey);
+            if (weeklySchedules.length === 0) {
+                weeklyReportEl.innerHTML = `<div class="text-center text-gray-400 py-6">本週 (${currentWeekKey}) 尚無計時紀錄</div>`;
+            } else {
+                let totalSecs = 0;
+                let subjectSummary = {};
+                weeklySchedules.forEach(s => {
+                    totalSecs += s.seconds;
+                    subjectSummary[s.subjectName] = (subjectSummary[s.subjectName] || 0) + s.seconds;
+                });
+
+                weeklyReportEl.innerHTML = `
+                    <div class="bg-gray-50 p-4 rounded-xl border space-y-2">
+                        <div class="text-xs text-gray-500">本週總讀書時間</div>
+                        <div class="text-2xl font-bold font-mono">${formatTime(totalSecs)}</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs font-medium text-gray-600">各科目投入時間：</div>
+                        ${Object.entries(subjectSummary).map(([subName, secs]) => `
+                            <div class="flex justify-between items-center text-sm border-b pb-1.5">
+                                <span class="font-medium">${escapeHtml(subName)}</span>
+                                <span class="font-mono text-gray-600">${formatTime(secs)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
         }
-
-        const weeksMap = {};
-        userData.schedules.forEach(s => {
-            const w = s.weekNumber || "未知週次";
-            if (!weeksMap[w]) weeksMap[w] = { totalSec: 0, subjects: {} };
-            weeksMap[w].totalSec += s.seconds;
-            if (!weeksMap[w].subjects[s.subjectName]) weeksMap[w].subjects[s.subjectName] = 0;
-            weeksMap[w].subjects[s.subjectName] += s.seconds;
-        });
-
-        const weekKeys = Object.keys(weeksMap).sort().reverse();
-        const latestWeek = weekKeys[0];
-        weekLabelEl.textContent = `顯示最近週次: ${latestWeek}`;
-
-        let html = "";
-        weekKeys.forEach(wKey => {
-            const weekData = weeksMap[wKey];
-            const totalH = formatTime(weekData.totalSec);
-            html += `
-                <div class="border rounded-xl p-4 bg-gray-50 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-sm text-gray-700"><i class="fa-solid fa-calendar-week mr-1"></i> ${wKey} 總計時</span>
-                        <span class="font-mono font-bold text-base bg-black text-white px-2.5 py-0.5 rounded">${totalH}</span>
-                    </div>
-                    <div class="text-xs text-gray-500 space-y-1 pt-1 border-t">
-                        <div class="font-medium text-gray-600">各科目投入時間：</div>
-                        <div class="flex flex-wrap gap-2 pt-1">
-                            ${Object.entries(weekData.subjects).map(([subName, sec]) => `
-                                <span class="bg-white border px-2 py-1 rounded-md">
-                                    <b>${escapeHtml(subName)}</b>:${formatTime(sec)}
-                                </span>
-                            `).join("")}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        reportEl.innerHTML = html;
     }
 </script>
 </body>
