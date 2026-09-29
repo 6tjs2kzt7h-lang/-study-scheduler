@@ -104,7 +104,7 @@
                         <div class="flex gap-2">
                             <div class="w-1/2">
                                 <label class="text-[11px] text-slate-400 block mb-1">目標頁數</label>
-                                <input type="number" id="sub-target" placeholder="可不填(自動算)" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                                <input type="number" id="sub-target" placeholder="可不填(預設1)" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
                             </div>
                             <div class="w-1/2">
                                 <label class="text-[11px] text-slate-400 block mb-1">考試日期</label>
@@ -113,8 +113,8 @@
                         </div>
 
                         <div>
-                            <label class="text-[11px] text-slate-400 block mb-1">上傳參考檔案 (PDF/文字檔)</label>
-                            <input type="file" id="sub-files" multiple accept=".pdf,.txt" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                            <label class="text-[11px] text-slate-400 block mb-1">上傳參考檔案 (不限格式)</label>
+                            <input type="file" id="sub-files" multiple class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                         </div>
 
                         <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-xl text-xs font-medium transition">建立科目</button>
@@ -222,10 +222,8 @@
         let timerSeconds = 0;
         let activeTimerSession = null;
 
-        // 全域變數供 HTML 內聯調用
         window.userData = userData;
 
-        // 即時更新頂部日期與目前時間
         function updateDateTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -314,12 +312,13 @@
             await setDoc(docRef, userData);
         }
 
+        // 不限檔案格式解析，若是 PDF 嘗試抓頁數，其他格式直接計入 1 頁或 0 頁
         async function parseFiles(fileList) {
             let filesData = [];
             let extraPages = 0;
             for (let file of fileList) {
                 let pageCount = 1; 
-                if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
                     try {
                         const arrayBuffer = await file.arrayBuffer();
                         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -349,9 +348,9 @@
                 if (!targetInput) target = parsed.extraPages;
             }
 
-            if (target <= 0) {
-                alert("請輸入目標頁數或上傳檔案！");
-                return;
+            // 若完全沒填目標頁數也沒傳檔案，預設為 1 頁
+            if (!target || target <= 0) {
+                target = 1;
             }
 
             userData.subjects.push({
@@ -427,7 +426,6 @@
             }
         }
 
-        // 計時器控制
         window.startTimer = function() {
             const subId = parseInt(document.getElementById('timer-subject-select').value);
             if (!subId) {
@@ -495,10 +493,9 @@
 
             await saveUserData();
             renderApp();
-            alert("計時完成！已新增至下方紀錄，您可以隨時填寫讀書範圍。");
+            alert("計時完成！已新增至下方紀錄。");
         }
 
-        // 讓檔案直接顯示在上方供點擊選取
         window.renderFileButtons = function() {
             const subjectSelect = document.getElementById('sch-subject');
             const container = document.getElementById('file-selection-container');
@@ -520,7 +517,6 @@
                 </button>
             `).join('');
 
-            // 如果只有一個檔案，預設自動選取
             if (sub.files.length === 1) {
                 const firstBtn = container.querySelector('.file-btn');
                 if (firstBtn) {
@@ -573,7 +569,7 @@
                     let filesHtml = '';
                     if (s.files && s.files.length > 0) {
                         filesHtml = `<div class="text-[11px] text-indigo-600 bg-indigo-50 p-2 rounded space-y-0.5">
-                            ${s.files.map(f => `<div>📄 ${f.name} (${f.pages}頁)</div>`).join('')}
+                            ${s.files.map(f => `<div>📄 ${f.name}</div>`).join('')}
                         </div>`;
                     }
 
@@ -600,7 +596,6 @@
                 }).join('');
             }
 
-            // 表格紀錄渲染
             const tbody = document.getElementById('schedule-table-body');
             if (!userData.schedules || userData.schedules.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400 text-xs">尚無紀錄</td></tr>`;
