@@ -139,7 +139,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         
-        // 強制鎖定瀏覽器語言與驗證來源，避免跨域抓錯 API Key
+        // 強制鎖定瀏覽器語言與驗證來源
         auth.useDeviceLanguage();
 
         const db = getFirestore(app);
@@ -177,14 +177,21 @@
             }
         });
 
-        window.loginWithGoogle = function() {
-            signInWithPopup(auth, provider).catch((error) => {
+        window.loginWithGoogle = async function() {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("登入失敗詳細資訊：", error);
                 alert("登入失敗：" + error.message);
-            });
+            }
         };
 
-        window.logout = function() {
-            signOut(auth);
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("登出失敗：", error);
+            }
         };
 
         async function loadUserData() {
