@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>極簡讀書規劃與計時器 (範圍與詳細時間版)</title>
+    <title>極簡讀書規劃與計時器 (完整確認版)</title>
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -64,7 +64,7 @@
             </div>
         </div>
         <div id="auth-container" class="flex items-center gap-3">
-            <button id="login-btn" class="hidden bg-black text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">
+            <button id="login-btn" class="bg-black text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">
                 <i class="fa-brands fa-google mr-2"></i> Google 登入
             </button>
             <div id="user-info" class="hidden flex items-center gap-3">
@@ -301,7 +301,7 @@
     let userData = { subjects: [], schedules: [] };
     let pendingMaterials = [];
     let currentEditingSubjectId = null;
-    let timerStartTime = null; // 記錄開始計時的精確時間
+    let timerStartTime = null;
 
     document.getElementById("login-btn").addEventListener("click", async () => {
         try {
@@ -549,6 +549,16 @@
         renderApp();
     };
 
+    window.deleteMaterial = function(subjectId, materialId) {
+        if (!confirm("確定要刪除此教材嗎？")) return;
+        const subject = userData.subjects.find(s => s.id == subjectId);
+        if (subject) {
+            subject.materials = subject.materials.filter(m => m.id != materialId);
+            saveUserData();
+            renderApp();
+        }
+    };
+
     window.deleteSchedule = function(scheduleId) {
         if (!confirm("確定要刪除這筆紀錄嗎？")) return;
         userData.schedules = userData.schedules.filter(s => s.id != scheduleId);
@@ -623,7 +633,6 @@
         if (secondsElapsed > 0 && subject && material) {
             const timerEndTime = new Date();
             
-            // 格式化日期與時間區間：幾年幾月幾日幾點讀到幾點
             const pad = (n) => String(n).padStart(2, '0');
             const yyyy = timerStartTime.getFullYear();
             const mm = pad(timerStartTime.getMonth() + 1);
@@ -637,12 +646,10 @@
             const weekdayStr = weekdays[timerStartTime.getDay()];
             const weekNumber = getWeekNumber(timerStartTime);
 
-            // 如果有填寫範圍，計算本次閱讀進度並更新教材已讀頁數
             let rangeStr = "未指定範圍";
             if (startPage !== null && endPage !== null && endPage >= startPage) {
                 rangeStr = `第 ${startPage} ~ ${endPage} 頁`;
                 const pagesReadCount = (endPage - startPage) + 1;
-                // 更新該教材已讀頁數（不超過總頁數）
                 material.current = Math.min(material.target, (Number(material.current) || 0) + pagesReadCount);
             } else if (endPage !== null) {
                 rangeStr = `至第 ${endPage} 頁`;
@@ -718,7 +725,6 @@
         });
         timerSubjectSelect.value = currentSubVal;
 
-        // 計算整體與單科進度
         let totalSubjects = userData.subjects.length;
         let completedPages = 0, totalPages = 0;
 
@@ -736,7 +742,6 @@
         document.getElementById("kpi-completed-pages-number").textContent = completedPages;
         document.getElementById("kpi-avg-progress").textContent = `${avgProgress}%`;
 
-        // 渲染科目與單科進度條
         const subListEl = document.getElementById("subject-list");
         if (userData.subjects.length === 0) {
             subListEl.innerHTML = `<div class="text-center text-gray-400 py-8">尚未建立科目</div>`;
@@ -797,12 +802,10 @@
             }).join('');
         }
 
-        // 渲染每日紀錄表格
         const scheduleListEl = document.getElementById("schedule-list");
         if (userData.schedules.length === 0) {
             scheduleListEl.innerHTML = `<tr><td colspan="4" class="text-center text-gray-400 py-6">尚無計時紀錄</td></tr>`;
         } else {
-            // 依時間倒序排列
             const sortedSchedules = [...userData.schedules].reverse();
             scheduleListEl.innerHTML = sortedSchedules.map(sc => `
                 <tr class="border-b hover:bg-gray-50">
@@ -824,7 +827,6 @@
             `).join('');
         }
 
-        // 渲染每週統整報告
         const weeklyReportEl = document.getElementById("weekly-report-content");
         const currentWeekLabelEl = document.getElementById("current-week-label");
         
