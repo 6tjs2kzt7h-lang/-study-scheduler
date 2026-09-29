@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>極簡雲端讀書計時與排程</title>
+    <title>極簡雲端讀書計時與頁數追蹤</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -15,7 +15,7 @@
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
             <h1 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> 極簡讀書規劃與計時器
+                <i class="fa-solid fa-book-open text-indigo-600"></i> 極簡讀書規劃與計時器
             </h1>
             <div class="flex items-center gap-3 text-sm">
                 <span id="current-datetime-display" class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-mono font-medium"></span>
@@ -88,28 +88,26 @@
 
             <!-- 左右雙欄版面 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- 左側：新增科目與檔案 -->
+                <!-- 左側：新增科目 -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-indigo-600"></i> 新增科目與上傳檔案
+                        <i class="fa-solid fa-plus text-indigo-600"></i> 新增讀書科目
                     </h2>
                     <form id="subject-form" class="space-y-3">
-                        <input type="text" id="sub-name" placeholder="科目名稱 (例如：經濟學)" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                        <div>
+                            <label class="text-[11px] text-slate-400 block mb-1">科目名稱</label>
+                            <input type="text" id="sub-name" placeholder="例如：經濟學" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                        </div>
                         
                         <div class="flex gap-2">
                             <div class="w-1/2">
-                                <label class="text-[11px] text-slate-400 block mb-1">目標頁數</label>
-                                <input type="number" id="sub-target" placeholder="預設1" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                                <label class="text-[11px] text-slate-400 block mb-1">總頁數</label>
+                                <input type="number" id="sub-target" placeholder="例如: 300" min="1" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
                             </div>
                             <div class="w-1/2">
-                                <label class="text-[11px] text-slate-400 block mb-1">考試日期</label>
+                                <label class="text-[11px] text-slate-400 block mb-1">考試日期 (選填)</label>
                                 <input type="date" id="sub-exam-date" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
                             </div>
-                        </div>
-
-                        <div>
-                            <label class="text-[11px] text-slate-400 block mb-1">上傳參考檔案 (不限格式)</label>
-                            <input type="file" id="sub-files" multiple class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
                         </div>
 
                         <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-xl text-xs font-medium transition">建立科目</button>
@@ -117,7 +115,7 @@
 
                     <hr class="border-slate-100">
 
-                    <h3 class="text-xs font-bold text-slate-700">現有科目與已上傳檔案清單</h3>
+                    <h3 class="text-xs font-bold text-slate-700">現有科目與頁數追蹤</h3>
                     <div id="subject-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                         <!-- 動態插入科目 -->
                     </div>
@@ -127,7 +125,7 @@
                 <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex justify-between items-center">
                         <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-days text-indigo-600"></i> 排程與讀書範圍紀錄
+                            <i class="fa-solid fa-calendar-days text-indigo-600"></i> 排程與讀書進度紀錄
                         </h2>
                         <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1">
                             <i class="fa-solid fa-download"></i> 匯出 CSV
@@ -147,18 +145,10 @@
                             </div>
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">選擇科目</label>
-                                <select id="sch-subject" onchange="window.renderFileButtons()" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
+                                <select id="sch-subject" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
                                     <option value="">請選擇科目</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div>
-                            <label class="text-[11px] text-slate-400 block mb-1">選擇對應檔案 (點擊選取)</label>
-                            <div id="file-selection-container" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-white border border-slate-200 rounded-lg text-xs items-center">
-                                <span class="text-slate-400 text-xs">請先選擇上方科目以顯示檔案</span>
-                            </div>
-                            <input type="hidden" id="sch-selected-file" value="">
                         </div>
 
                         <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
@@ -172,8 +162,8 @@
                             <thead>
                                 <tr class="border-b text-[11px] text-slate-400 uppercase">
                                     <th class="py-2 px-2">日期 / 時段</th>
-                                    <th class="py-2 px-2">科目與檔案</th>
-                                    <th class="py-2 px-2">計時與讀書範圍 (前後皆可填)</th>
+                                    <th class="py-2 px-2">科目</th>
+                                    <th class="py-2 px-2">計時與讀書範圍 (例如: p.1-25)</th>
                                     <th class="py-2 px-2 text-right">操作</th>
                                 </tr>
                             </thead>
@@ -316,40 +306,25 @@
             }
         }
 
-        // 完全移除複雜的非同步解析，直接安全抓取檔名與預設頁數
+        // 新增科目（只需名稱與總頁數）
         document.getElementById('subject-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             try {
                 const name = document.getElementById('sub-name').value.trim();
-                let targetInput = document.getElementById('sub-target').value;
-                let target = targetInput ? parseInt(targetInput) : 1;
+                const target = parseInt(document.getElementById('sub-target').value);
                 const examDate = document.getElementById('sub-exam-date').value;
-                const fileInput = document.getElementById('sub-files');
 
-                let files = [];
-                if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                    for (let i = 0; i < fileInput.files.length; i++) {
-                        files.push({
-                            name: fileInput.files[i].name,
-                            pages: target > 1 ? Math.round(target / fileInput.files.length) : 1
-                        });
-                    }
-                }
-
-                if (!name) {
-                    alert("請輸入科目名稱！");
+                if (!name || isNaN(target) || target <= 0) {
+                    alert("請填寫完整的科目名稱與有效的總頁數！");
                     return;
                 }
-
-                if (target <= 0) target = 1;
 
                 userData.subjects.push({
                     id: Date.now(),
                     name,
                     target,
                     current: 0,
-                    examDate,
-                    files
+                    examDate
                 });
 
                 document.getElementById('subject-form').reset();
@@ -382,7 +357,6 @@
             const date = document.getElementById('sch-date').value;
             const time = document.getElementById('sch-time').value;
             const subjectId = parseInt(document.getElementById('sch-subject').value);
-            const fileName = document.getElementById('sch-selected-file').value;
 
             if (!subjectId) {
                 alert("請選擇科目！");
@@ -394,14 +368,12 @@
                 date,
                 time,
                 subjectId,
-                fileName: fileName || '',
                 duration: "0秒",
                 range: ""
             });
 
             document.getElementById('schedule-form').reset();
             updateDateTime();
-            window.renderFileButtons();
             await saveUserData();
             renderApp();
         });
@@ -426,7 +398,6 @@
                 alert("請先選擇要計時的科目！");
                 return;
             }
-            const sub = userData.subjects.find(s => s.id === subId);
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0];
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}開始`;
@@ -436,7 +407,6 @@
                 date: dateStr,
                 time: timeStr,
                 subjectId: subId,
-                fileName: sub.files && sub.files.length > 0 ? sub.files[0].name : '',
                 seconds: 0,
                 range: ""
             };
@@ -490,46 +460,6 @@
             alert("計時完成！已新增至下方紀錄。");
         }
 
-        window.renderFileButtons = function() {
-            const subjectSelect = document.getElementById('sch-subject');
-            const container = document.getElementById('file-selection-container');
-            const hiddenInput = document.getElementById('sch-selected-file');
-            
-            if(!subjectSelect || !container) return;
-            const subId = parseInt(subjectSelect.value);
-            const sub = window.userData.subjects.find(s => s.id === subId);
-
-            hiddenInput.value = '';
-            if (!sub || !sub.files || sub.files.length === 0) {
-                container.innerHTML = `<span class="text-slate-400 text-xs">此科目無可用檔案</span>`;
-                return;
-            }
-
-            container.innerHTML = sub.files.map((f, idx) => `
-                <button type="button" onclick="selectFileButton('${f.name.replace(/'/g, "\\'")}', this)" class="file-btn px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded text-xs transition truncate max-w-[200px]">
-                    📄 ${f.name}
-                </button>
-            `).join('');
-
-            if (sub.files.length === 1) {
-                const firstBtn = container.querySelector('.file-btn');
-                if (firstBtn) {
-                    window.selectFileButton(sub.files[0].name, firstBtn);
-                }
-            }
-        }
-
-        window.selectFileButton = function(fileName, btnEl) {
-            document.getElementById('sch-selected-file').value = fileName;
-            const buttons = document.querySelectorAll('.file-btn');
-            buttons.forEach(b => {
-                b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
-                b.classList.add('bg-slate-100', 'text-slate-700');
-            });
-            btnEl.classList.remove('bg-slate-100', 'text-slate-700');
-            btnEl.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
-        }
-
         function renderApp() {
             window.userData = userData;
             const totalSub = userData.subjects.length;
@@ -549,23 +479,16 @@
                 listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">尚無科目</p>`;
                 subjectSelect.innerHTML = `<option value="">請先新增科目</option>`;
                 timerSubSelect.innerHTML = `<option value="">請先新增科目</option>`;
-                document.getElementById('file-selection-container').innerHTML = `<span class="text-slate-400 text-xs">請先新增科目</span>`;
             } else {
                 const currentSubId = subjectSelect.value;
-                const opts = userData.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                const opts = userData.subjects.map(s => `<option value="${s.id}">${s.name} (總 ${s.target} 頁)</option>`).join('');
                 subjectSelect.innerHTML = `<option value="">請選擇科目</option>` + opts;
                 timerSubSelect.innerHTML = `<option value="">選擇計時科目</option>` + opts;
                 if(currentSubId) subjectSelect.value = currentSubId;
-                window.renderFileButtons();
 
                 listEl.innerHTML = userData.subjects.map(s => {
-                    const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
-                    let filesHtml = '';
-                    if (s.files && s.files.length > 0) {
-                        filesHtml = `<div class="text-[11px] text-indigo-600 bg-indigo-50 p-2 rounded space-y-0.5">
-                            ${s.files.map(f => `<div>📄 ${f.name}</div>`).join('')}
-                        </div>`;
-                    }
+                    const percent = s.target > 0 ? Math.min(100, Math.round((s.current / s.target) * 100)) : 0;
+                    const remaining = Math.max(0, s.target - s.current);
 
                     return `
                         <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-200">
@@ -573,17 +496,16 @@
                                 <span class="font-bold text-slate-700 text-xs">${s.name}</span>
                                 <button onclick="deleteSubject(${s.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            ${filesHtml}
                             <div class="flex justify-between text-[11px] text-slate-500">
-                                <span>進度: ${s.current} / ${s.target} 頁</span>
-                                <span class="font-bold">${percent}%</span>
+                                <span>已讀: <b>${s.current}</b> / 總共 ${s.target} 頁</span>
+                                <span class="text-indigo-600 font-bold">剩餘 ${remaining} 頁 (${percent}%)</span>
                             </div>
                             <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                                 <div class="bg-indigo-600 h-full" style="width: ${percent}%"></div>
                             </div>
-                            <div class="flex items-center gap-1 pt-1">
-                                <span class="text-[11px] text-slate-500">已讀頁數：</span>
-                                <input type="number" value="${s.current}" min="0" max="${s.target}" onchange="updateProgressDirect(${s.id}, this.value)" class="w-16 px-1.5 py-0.5 text-xs border rounded bg-white text-center font-medium outline-none">
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="text-[11px] text-slate-500">直接更新已讀頁數：</span>
+                                <input type="number" value="${s.current}" min="0" max="${s.target}" onchange="updateProgressDirect(${s.id}, this.value)" class="w-20 px-2 py-0.5 text-xs border rounded bg-white text-center font-medium outline-none">
                             </div>
                         </div>
                     `;
@@ -597,7 +519,6 @@
                 tbody.innerHTML = userData.schedules.map(sch => {
                     const sub = userData.subjects.find(s => s.id === sch.subjectId);
                     const subName = sub ? sub.name : '已刪除';
-                    const fileTxt = sch.fileName ? `<span class="block text-[11px] text-indigo-600 mt-0.5">📄 ${sch.fileName}</span>` : '';
 
                     return `
                         <tr class="border-b hover:bg-slate-50">
@@ -607,11 +528,10 @@
                             </td>
                             <td class="py-2.5 px-2">
                                 <span class="font-bold text-slate-700">${subName}</span>
-                                ${fileTxt}
                             </td>
                             <td class="py-2.5 px-2 space-y-1">
                                 <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px]">⏱️ ${sch.duration || '0秒'}</span>
-                                <input type="text" value="${sch.range || ''}" placeholder="填寫範圍 (例: p.10-25)" onchange="updateScheduleField(${sch.id}, 'range', this.value)" class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500">
+                                <input type="text" value="${sch.range || ''}" placeholder="填寫讀書範圍 (例: p.10-25)" onchange="updateScheduleField(${sch.id}, 'range', this.value)" class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500">
                             </td>
                             <td class="py-2.5 px-2 text-right">
                                 <button onclick="deleteSchedule(${sch.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
@@ -623,10 +543,10 @@
         }
 
         window.exportCSV = function() {
-            let csv = '\uFEFF日期,時段,科目,檔案,計時,範圍\n';
+            let csv = '\uFEFF日期,時段,科目,計時,範圍\n';
             userData.schedules.forEach(sch => {
                 const sub = userData.subjects.find(s => s.id === sch.subjectId);
-                csv += `${sch.date},${sch.time},${sub ? sub.name : ''},${sch.fileName || ''},${sch.duration || ''},"${sch.range || ''}"\n`;
+                csv += `${sch.date},${sch.time},${sub ? sub.name : ''},${sch.duration || ''},"${sch.range || ''}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
