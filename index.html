@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 週/日讀書排程規劃器</title>
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --info-color: #0284c7;
+            --warning-color: #f59e0b;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 760px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .kpi-card {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f1f5f9;
+            border-radius: var(--radius);
+        }
+
+        .kpi-title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        details {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            background-color: #f8fafc;
+        }
+
+        summary:hover {
+            background-color: #f1f5f9;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            background: #fff;
+        }
+
+        .tab-content {
+            padding: 1.25rem;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="time"],
+        select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        .row-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .alert-info {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .subject-item {
+            margin-bottom: 1rem;
+        }
+
+        .subject-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .progress-bar-bg {
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .weekday-picker {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .weekday-picker label {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            background: #f1f5f9;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin: 0;
+            transition: all 0.2s;
+        }
+
+        .weekday-picker input[type="radio"] {
+            display: none;
+        }
+
+        .weekday-picker input[type="radio"]:checked + span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .weekday-picker label:has(input[type="radio"]:checked) {
+            background-color: #dbeafe;
+            border: 1px solid var(--primary-color);
+        }
+
+        .schedule-item {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .schedule-study {
+            background-color: #dcfce7;
+            color: #15803d;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .schedule-free {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-left: 4px solid var(--info-color);
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border-color);
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 600px) {
+            .row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .row-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📅 週與每日半小時讀書排程</h1>
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+
+        <div class="kpi-card">
+            <div class="kpi-title">📚 追蹤科目數</div>
+            <div class="kpi-value" id="kpi-subs">0 科</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-title">📊 整體平均進度</div>
+            <div class="kpi-value" id="kpi-avg">0.0%</div>
+        </div>
+
+    </div>
+
+
+    <!-- 新增 / 管理科目 -->
+
+    <details>
+
+        <summary>➕ 新增 / 管理科目</summary>
+
+        <div class="tabs-header">
+
+            <button class="tab-btn active" onclick="switchTab(0)">
+                手動新增
+            </button>
+
+            <button class="tab-btn" onclick="switchTab(1)">
+                檔案上傳
+            </button>
+
+            <button class="tab-btn" onclick="switchTab(2)">
+                管理/刪除科目
+            </button>
+
+        </div>
+
+
+        <!-- 手動新增 -->
+
+        <div class="tab-content active" id="tab-0">
+
+            <div class="row-3">
+
+                <div class="form-group">
+                    <label>科目名稱</label>
+                    <input
+                        type="text"
+                        id="manual-name"
+                        placeholder="例：英文">
+                </div>
+
+                <div class="form-group">
+                    <label>已讀頁數</label>
+                    <input
+                        type="number"
+                        id="manual-curr"
+                        value="0"
+                        min="0">
+                </div>
+
+                <div class="form-group">
+                    <label>總頁數</label>
+                    <input
+                        type="number"
+                        id="manual-tot"
+                        value="50"
+                        min="1">
+                </div>
+
+            </div>
+
+            <button
+                class="btn btn-primary"
+                onclick="addManualSubject()">
+                確認新增科目
+            </button>
+
+        </div>
+
+
+        <!-- 檔案上傳 -->
+
+        <div class="tab-content" id="tab-1">
+
+            <div class="form-group">
+
+                <label>
+                    上傳教材檔案 (PDF/EPUB/TXT)
+                </label>
+
+                <input
+                    type="file"
+                    id="file-input"
+                    accept=".pdf,.epub,.txt">
+
+            </div>
+
+            <div class="row-2">
+
+                <div class="form-group">
+                    <label>該檔案已讀頁數</label>
+
+                    <input
+                        type="number"
+                        id="file-curr"
+                        value="0"
+                        min="0">
+                </div>
+
+                <div class="form-group">
+                    <label>該檔案總頁數</label>
+
+                    <input
+                        type="number"
+                        id="file-tot"
+                        value="50"
+                        min="1">
+                </div>
+
+            </div>
+
+            <button
+                class="btn btn-primary"
+                onclick="addFileSubject()">
+                匯入檔案為科目
+            </button>
+
+        </div>
+
+
+        <!-- 刪除科目 -->
+
+        <div class="tab-content" id="tab-2">
+
+            <div class="form-group">
+
+                <label>選擇要刪除的科目：</label>
+
+                <select id="delete-select"></select>
+
+            </div>
+
+            <button
+                class="btn btn-danger"
+                onclick="deleteSubject()">
+                🗑️ 刪除科目
+            </button>
+
+        </div>
+
+    </details>
+
+
+    <!-- 各科進度 -->
+
+    <div class="card">
+
+        <h3 style="margin-bottom: 1rem;">
+            📖 各科進度總覽
+        </h3>
+
+        <div id="priority-alert"></div>
+
+        <div id="subjects-list"></div>
+
+    </div>
+
+
+    <!-- 星期時間規劃 -->
+
+    <div class="card">
+
+        <h3 style="margin-bottom: 1rem;">
+            🗓️ 選擇星期進行 0.5 小時排程
+        </h3>
+
+        <div
+            class="weekday-picker"
+            id="weekday-picker">
+        </div>
+
+
+        <div class="row-2">
+
+            <div class="form-group">
+
+                <label id="start-time-label">
+                    開始時間
+                </label>
+
+                <input
+                    type="time"
+                    id="start-time"
+                    value="18:00"
+                    onchange="updateScheduleConfig()">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label id="end-time-label">
+                    結束時間
+                </label>
+
+                <input
+                    type="time"
+                    id="end-time"
+                    value="22:00"
+                    onchange="updateScheduleConfig()">
+
+            </div>
+
+        </div>
+
+
+        <div
+            style="
+                font-size:0.85rem;
+                color:var(--text-muted);
+                margin-bottom:1rem;
+            "
+            id="time-caption">
+
+            ⏱️ 當天可排程時間：
+            共 4.0 小時（8 個 0.5 小時區塊）
+
+        </div>
+
+
+        <button
+            class="btn btn-primary"
+            id="gen-btn"
+            onclick="generateSchedule()">
+
+            ⚡ 生成半小時進度排程
+
+        </button>
+
+
+        <div id="schedule-output"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // ==============================
+    // 基本資料
+    // ==============================
+
+    const weekdays = [
+        "星期一",
+        "星期二",
+        "星期三",
+        "星期四",
+        "星期五",
+        "星期六",
+        "星期日"
+    ];
+
+
+    let subjects =
+        JSON.parse(localStorage.getItem("subjects")) || [
+
+            {
+                name: "微積分",
+                current: 20,
+                total: 100
+            },
+
+            {
+                name: "普通物理",
+                current: 40,
+                total: 80
+            }
+
+        ];
+
+
+    let scheduleConfig =
+        JSON.parse(
+            localStorage.getItem("scheduleConfig")
+        ) || {
+
+            "星期一": {
+                start: "18:00",
+                end: "22:00"
+            },
+
+            "星期二": {
+                start: "18:00",
+                end: "22:00"
+            },
+
+            "星期三": {
+                start: "18:00",
+                end: "22:00"
+            },
+
+            "星期四": {
+                start: "18:00",
+                end: "22:00"
+            },
+
+            "星期五": {
+                start: "18:00",
+                end: "22:00"
+            },
+
+            "星期六": {
+                start: "18:00",
+                end: "22:00"
+            },
+
+            "星期日": {
+                start: "18:00",
+                end: "22:00"
+            }
+
+        };
+
+
+    let selectedDay = "星期一";
+
+    let generatedSchedules = {};
+
+
+    // ==============================
+    // 儲存資料
+    // ==============================
+
+    function saveData() {
+
+        localStorage.setItem(
+            "subjects",
+            JSON.stringify(subjects)
+        );
+
+        localStorage.setItem(
+            "scheduleConfig",
+            JSON.stringify(scheduleConfig)
+        );
+
+    }
+
+
+    // ==============================
+    // 初始化
+    // ==============================
+
+    window.onload = function () {
+
+        renderWeekdays();
+
+        renderAll();
+
+    };
+
+
+    function renderAll() {
+
+        renderKPI();
+
+        renderSubjects();
+
+        renderDeleteOptions();
+
+        renderTimeInputs();
+
+        renderScheduleOutput();
+
+        saveData();
+
+    }
+
+
+    // ==============================
+    // Tab 切換
+    // ==============================
+
+    function switchTab(index) {
+
+        document
+            .querySelectorAll(".tab-btn")
+            .forEach(function(btn, i) {
+
+                btn.classList.toggle(
+                    "active",
+                    i === index
+                );
+
+            });
+
+
+        document
+            .querySelectorAll(".tab-content")
+            .forEach(function(content, i) {
+
+                content.classList.toggle(
+                    "active",
+                    i === index
+                );
+
+            });
+
+    }
+
+
+    // ==============================
+    // 星期選單
+    // ==============================
+
+    function renderWeekdays() {
+
+        const container =
+            document.getElementById(
+                "weekday-picker"
+            );
+
+
+        container.innerHTML =
+            weekdays.map(function(day) {
+
+                return `
+                    <label>
+
+                        <input
+                            type="radio"
+                            name="weekday"
+                            value="${day}"
+                            ${day === selectedDay
+                                ? "checked"
+                                : ""}
+                            onchange="changeDay('${day}')">
+
+                        <span>${day}</span>
+
+                    </label>
+                `;
+
+            }).join("");
+
+    }
+
+
+    function changeDay(day) {
+
+        selectedDay = day;
+
+        renderTimeInputs();
+
+        renderScheduleOutput();
+
+    }
+
+
+    // ==============================
+    // KPI
+    // ==============================
+
+    function renderKPI() {
+
+        const total = subjects.length;
+
+
+        const avg =
+            total > 0
+                ? (
+                    subjects.reduce(
+                        function(sum, s) {
+
+                            return sum +
+                                (
+                                    s.current /
+                                    s.total
+                                );
+
+                        },
+                        0
+                    ) / total
+                ) * 100
+                : 0;
+
+
+        document.getElementById(
+            "kpi-subs"
+        ).innerText =
+            `${total} 科`;
+
+
+        document.getElementById(
+            "kpi-avg"
+        ).innerText =
+            `${avg.toFixed(1)}%`;
+
+    }
+
+
+    // ==============================
+    // 科目進度
+    // ==============================
+
+    function renderSubjects() {
+
+        const alertBox =
+            document.getElementById(
+                "priority-alert"
+            );
+
+
+        const listContainer =
+            document.getElementById(
+                "subjects-list"
+            );
+
+
+        if (subjects.length === 0) {
+
+            alertBox.innerHTML = "";
+
+            listContainer.innerHTML =
+                `<p style="color:var(--text-muted);">
+                    目前尚無科目，請先點擊上方新增。
+                </p>`;
+
+            return;
+
+        }
+
+
+        const uncompleted =
+            subjects.filter(function(s) {
+
+                return s.current < s.total;
+
+            });
+
+
+        if (uncompleted.length > 0) {
+
+            uncompleted.sort(function(a, b) {
+
+                return (
+                    a.current / a.total
+                ) -
+                (
+                    b.current / b.total
+                );
+
+            });
+
+
+            const lowest =
+                uncompleted[0];
+
+
+            const pct =
+                (
+                    lowest.current /
+                    lowest.total *
+                    100
+                ).toFixed(1);
+
+
+            alertBox.innerHTML =
+                `<div class="alert-info">
+
+                    💡 目前優先衝刺：
+                    <strong>${lowest.name}</strong>
+
+                    （進度 ${pct}%），
+                    系統將優先排程！
+
+                </div>`;
+
+        } else {
+
+            alertBox.innerHTML =
+                `<div
+                    class="alert-info"
+                    style="
+                        background:#dcfce7;
+                        color:#15803d;
+                    "
+                >
+                    🎉 太棒了！
+                    所有科目皆已完成預定進度！
+                </div>`;
+
+        }
+
+
+        listContainer.innerHTML =
+            subjects.map(function(s) {
+
+                const pct =
+                    Math.min(
+                        100,
+                        (
+                            s.current /
+                            s.total
+                        ) * 100
+                    );
+
+
+                return `
+                    <div class="subject-item">
+
+                        <div class="subject-info">
+
+                            <span>
+                                <strong>
+                                    ${s.name}
+                                </strong>
+                            </span>
+
+                            <span>
+                                ${s.current}
+                                /
+                                ${s.total}
+                                頁
+                                (${pct.toFixed(1)}%)
+                            </span>
+
+                        </div>
+
+
+                        <div class="progress-bar-bg">
+
+                            <div
+                                class="progress-bar-fill"
+                                style="width:${pct}%">
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }).join("");
+
+    }
+
+
+    // ==============================
+    // 刪除科目選單
+    // ==============================
+
+    function renderDeleteOptions() {
+
+        const select =
+            document.getElementById(
+                "delete-select"
+            );
+
+
+        if (subjects.length === 0) {
+
+            select.innerHTML =
+                `<option value="">
+                    目前無科目
+                </option>`;
+
+        } else {
+
+            select.innerHTML =
+                subjects.map(function(s) {
+
+                    return `
+                        <option value="${s.name}">
+                            ${s.name}
+                        </option>
+                    `;
+
+                }).join("");
+
+        }
+
+    }
+
+
+    // ==============================
+    // 時間設定
+    // ==============================
+
+    function renderTimeInputs() {
+
+        const cfg =
+            scheduleConfig[selectedDay];
+
+
+        document.getElementById(
+            "start-time-label"
+        ).innerText =
+            `${selectedDay} 開始時間`;
+
+
+        document.getElementById(
+            "end-time-label"
+        ).innerText =
+            `${selectedDay} 結束時間`;
+
+
+        document.getElementById(
+            "start-time"
+        ).value =
+            cfg.start;
+
+
+        document.getElementById(
+            "end-time"
+        ).value =
+            cfg.end;
+
+
+        document.getElementById(
+            "gen-btn"
+        ).innerText =
+            `⚡ 生成 ${selectedDay} 的半小時進度排程`;
+
+
+        calculateBlocks();
+
+    }
+
+
+    function updateScheduleConfig() {
+
+        scheduleConfig[selectedDay].start =
+            document.getElementById(
+                "start-time"
+            ).value;
+
+
+        scheduleConfig[selectedDay].end =
+            document.getElementById(
+                "end-time"
+            ).value;
+
+
+        calculateBlocks();
+
+        saveData();
+
+    }
+
+
+    function calculateBlocks() {
+
+        const start =
+            document.getElementById(
+                "start-time"
+            ).value;
+
+
+        const end =
+            document.getElementById(
+                "end-time"
+            ).value;
+
+
+        const [sH, sM] =
+            start.split(":").map(Number);
+
+
+        const [eH, eM] =
+            end.split(":").map(Number);
+
+
+        const startMin =
+            sH * 60 + sM;
+
+
+        const endMin =
+            eH * 60 + eM;
+
+
+        const caption =
+            document.getElementById(
+                "time-caption"
+            );
+
+
+        if (endMin <= startMin) {
+
+            caption.innerText =
+                "❌ 結束時間必須晚於開始時間！";
+
+
+            caption.style.color =
+                "#ef4444";
+
+
+            return -1;
+
+        }
+
+
+        const totalMin =
+            endMin - startMin;
+
+
+        const blocks =
+            Math.floor(
+                totalMin / 30
+            );
+
+
+        caption.innerText =
+            `⏱️ 當天可排程時間：
+            共 ${(totalMin / 60).toFixed(1)}
+            小時（${blocks} 個 0.5 小時區塊）`;
+
+
+        caption.style.color =
+            "var(--text-muted)";
+
+
+        return blocks;
+
+    }
+
+
+    // ==============================
+    // 新增科目
+    // ==============================
+
+    function addManualSubject() {
+
+        const name =
+            document.getElementById(
+                "manual-name"
+            ).value.trim();
+
+
+        const curr =
+            parseInt(
+                document.getElementById(
+                    "manual-curr"
+                ).value
+            ) || 0;
+
+
+        const tot =
+            parseInt(
+                document.getElementById(
+                    "manual-tot"
+                ).value
+            ) || 1;
+
+
+        if (!name) {
+
+            alert("請輸入科目名稱！");
+
+            return;
+
+        }
+
+
+        if (
+            subjects.some(function(s) {
+                return s.name === name;
+            })
+        ) {
+
+            alert("已有相同名稱的科目！");
+
+            return;
+
+        }
+
+
+        subjects.push({
+            name: name,
+            current: curr,
+            total: tot
+        });
+
+
+        document.getElementById(
+            "manual-name"
+        ).value = "";
+
+
+        renderAll();
+
+    }
+
+
+    // ==============================
+    // 檔案新增
+    // ==============================
+
+    function addFileSubject() {
+
+        const fileInput =
+            document.getElementById(
+                "file-input"
+            );
+
+
+        const curr =
+            parseInt(
+                document.getElementById(
+                    "file-curr"
+                ).value
+            ) || 0;
+
+
+        const tot =
+            parseInt(
+                document.getElementById(
+                    "file-tot"
+                ).value
+            ) || 1;
+
+
+        if (!fileInput.files.length) {
+
+            alert("請選擇檔案！");
+
+            return;
+
+        }
+
+
+        const fileName =
+            fileInput.files[0]
+                .name
+                .replace(/\.[^/.]+$/, "");
+
+
+        if (
+            subjects.some(function(s) {
+                return s.name === fileName;
+            })
+        ) {
+
+            alert("已有相同名稱的科目！");
+
+            return;
+
+        }
+
+
+        subjects.push({
+            name: fileName,
+            current: curr,
+            total: tot
+        });
+
+
+        fileInput.value = "";
+
+        renderAll();
+
+    }
+
+
+    // ==============================
+    // 刪除科目
+    // ==============================
+
+    function deleteSubject() {
+
+        const name =
+            document.getElementById(
+                "delete-select"
+            ).value;
+
+
+        if (!name) return;
+
+
+        subjects =
+            subjects.filter(function(s) {
+
+                return s.name !== name;
+
+            });
+
+
+        renderAll();
+
+    }
+
+
+    // ==============================
+    // 產生排程
+    // ==============================
+
+    function generateSchedule() {
+
+        const blocks =
+            calculateBlocks();
+
+
+        if (blocks <= 0) {
+
+            alert(
+                "請設定正確的時間範圍！"
+            );
+
+            return;
+
+        }
+
+
+        if (subjects.length === 0) {
+
+            alert(
+                "請先新增科目才能生成排程！"
+            );
+
+            return;
+
+        }
+
+
+        let simSubs =
+            JSON.parse(
+                JSON.stringify(subjects)
+            );
+
+
+        let [currH, currM] =
+            document
+                .getElementById(
+                    "start-time"
+                )
+                .value
+                .split(":")
+                .map(Number);
+
+
+        const scheduleList = [];
+
+
+        for (
+            let i = 0;
+            i < blocks;
+            i++
+        ) {
+
+            const tStart =
+                `${String(currH).padStart(2, "0")}:
+                ${String(currM).padStart(2, "0")}`
+                .replace(/\s/g, "");
+
+
+            currM += 30;
+
+
+            if (currM >= 60) {
+
+                currH +=
+                    Math.floor(
+                        currM / 60
+                    );
+
+                currM %= 60;
+
+            }
+
+
+            const tEnd =
+                `${String(currH).padStart(2, "0")}:
+                ${String(currM).padStart(2, "0")}`
+                .replace(/\s/g, "");
+
+
+            let activeSubs =
+                simSubs.filter(function(s) {
+
+                    return s.current < s.total;
+
+                });
+
+
+            if (
+                activeSubs.length === 0
+            ) {
+
+                scheduleList.push({
+
+                    time:
+                        `${tStart} - ${tEnd}`,
+
+                    subject:
+                        "🎉 自由時間 / 複習",
+
+                    note:
+                        "所有科目皆已達目標頁數！",
+
+                    isFree: true
+
+                });
+
+            } else {
+
+                activeSubs.sort(
+                    function(a, b) {
+
+                        return (
+                            a.current /
+                            a.total
+                        ) -
+                        (
+                            b.current /
+                            b.total
+                        );
+
+                    }
+                );
+
+
+                let target =
+                    activeSubs[0];
+
+
+                target.current =
+                    Math.min(
+                        target.total,
+                        target.current + 5
+                    );
+
+
+                let newPct =
+                    (
+                        target.current /
+                        target.total *
+                        100
+                    ).toFixed(0);
+
+
+                scheduleList.push({
+
+                    time:
+                        `${tStart} - ${tEnd}`,
+
+                    subject:
+                        target.name,
+
+                    note:
+                        `預計 +5 頁 ➔ 進度達 ${newPct}%`,
+
+                    isFree: false
+
+                });
+
+            }
+
+        }
+
+
+        generatedSchedules[selectedDay] =
+            scheduleList;
+
+
+        renderScheduleOutput();
+
+    }
+
+
+    // ==============================
+    // 顯示排程
+    // ==============================
+
+    function renderScheduleOutput() {
+
+        const container =
+            document.getElementById(
+                "schedule-output"
+            );
+
+
+        const list =
+            generatedSchedules[selectedDay];
+
+
+        if (
+            !list ||
+            list.length === 0
+        ) {
+
+            container.innerHTML = "";
+
+            return;
+
+        }
+
+
+        const cfg =
+            scheduleConfig[selectedDay];
+
+
+        let html =
+            `<hr>
+
+            <h3>
+                📋 ${selectedDay}
+                讀書計畫時間表
+                (${cfg.start} - ${cfg.end})
+            </h3>
+
+            <div style="margin-top:1rem;">`;
+
+
+        list.forEach(function(item) {
+
+            if (item.isFree) {
+
+                html +=
+                    `<div class="schedule-item schedule-free">
+
+                        <strong>
+                            ${item.time}
+                        </strong>
+
+                        ｜ ${item.subject}
+
+                        （${item.note}）
+
+                    </div>`;
+
+            } else {
+
+                html +=
+                    `<div class="schedule-item schedule-study">
+
+                        <strong>
+                            ${item.time}
+                        </strong>
+
+                        ｜ 研讀：
+                        <strong>
+                            ${item.subject}
+                        </strong>
+
+                        （${item.note}）
+
+                    </div>`;
+
+            }
+
+        });
+
+
+        html +=
+            `</div>
+
+            <button
+                class="btn btn-primary"
+                style="
+                    margin-top:0.75rem;
+                    background-color:#059669;
+                "
+                onclick="downloadCSV()">
+
+                📥 下載今日排程 CSV
+
+            </button>`;
+
+
+        container.innerHTML =
+            html;
+
+    }
+
+
+    // ==============================
+    // CSV 匯出
+    // ==============================
+
+    function downloadCSV() {
+
+        const list =
+            generatedSchedules[selectedDay];
+
+
+        if (!list) return;
+
+
+        let csvContent =
+            "\uFEFF" +
+            "時間,科目,備註\n";
+
+
+        list.forEach(function(item) {
+
+            csvContent +=
+                `"${item.time}",
+                "${item.subject}",
+                "${item.note}"\n`
+                .replace(/\n\s+/g, "");
+
+        });
+
+
+        const blob =
+            new Blob(
+                [csvContent],
+                {
+                    type:
+                        "text/csv;charset=utf-8;"
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(blob);
+
+
+        const link =
+            document.createElement("a");
+
+
+        link.setAttribute(
+            "href",
+            url
+        );
+
+
+        link.setAttribute(
+            "download",
+            `${selectedDay}_讀書排程.csv`
+        );
+
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+    }
+
+</script>
+
+</body>
+</html>
