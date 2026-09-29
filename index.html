@@ -125,7 +125,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase 專案設定（已自動填好）
+        // Firebase 專案設定
         const firebaseConfig = {
             apiKey: "AIzaSyBHJ8Gt2vAyDEvKDQDr1AhhLVBSYZHjc",
             authDomain: "study-scheduler-21d31.firebaseapp.com",
@@ -138,6 +138,10 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        
+        // 強制鎖定瀏覽器語言與驗證來源，避免跨域抓錯 API Key
+        auth.useDeviceLanguage();
+
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
