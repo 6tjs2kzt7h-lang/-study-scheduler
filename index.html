@@ -8,11 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF.js 用於自動解析 PDF 頁數 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
@@ -104,7 +99,7 @@
                         <div class="flex gap-2">
                             <div class="w-1/2">
                                 <label class="text-[11px] text-slate-400 block mb-1">目標頁數</label>
-                                <input type="number" id="sub-target" placeholder="可不填(預設1)" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                                <input type="number" id="sub-target" placeholder="預設1" min="1" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
                             </div>
                             <div class="w-1/2">
                                 <label class="text-[11px] text-slate-400 block mb-1">考試日期</label>
@@ -128,7 +123,7 @@
                     </div>
                 </div>
 
-                <!-- 右側：排程與計時紀錄（檔案直接顯示選取） -->
+                <!-- 右側：排程與計時紀錄 -->
                 <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex justify-between items-center">
                         <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -158,7 +153,6 @@
                             </div>
                         </div>
 
-                        <!-- 檔案直接顯示在上方供點擊選取 -->
                         <div>
                             <label class="text-[11px] text-slate-400 block mb-1">選擇對應檔案 (點擊選取)</label>
                             <div id="file-selection-container" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-white border border-slate-200 rounded-lg text-xs items-center">
@@ -291,15 +285,20 @@
 
         async function loadUserData() {
             if (!currentUser) return;
-            const docRef = doc(db, "schedules", currentUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                userData = docSnap.data();
-                if (!userData.subjects) userData.subjects = [];
-                if (!userData.schedules) userData.schedules = [];
-            } else {
+            try {
+                const docRef = doc(db, "schedules", currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    userData = docSnap.data();
+                    if (!userData.subjects) userData.subjects = [];
+                    if (!userData.schedules) userData.schedules = [];
+                } else {
+                    userData = { subjects: [], schedules: [] };
+                    await saveUserData();
+                }
+            } catch (e) {
+                console.error("載入資料錯誤", e);
                 userData = { subjects: [], schedules: [] };
-                await saveUserData();
             }
             window.userData = userData;
             renderApp();
@@ -308,63 +307,58 @@
         async function saveUserData() {
             if (!currentUser) return;
             window.userData = userData;
-            const docRef = doc(db, "schedules", currentUser.uid);
-            await setDoc(docRef, userData);
-        }
-
-        // 不限檔案格式解析，若是 PDF 嘗試抓頁數，其他格式直接計入 1 頁或 0 頁
-        async function parseFiles(fileList) {
-            let filesData = [];
-            let extraPages = 0;
-            for (let file of fileList) {
-                let pageCount = 1; 
-                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                        pageCount = pdf.numPages;
-                    } catch (e) {
-                        console.error("PDF 解析失敗", e);
-                    }
-                }
-                filesData.push({ name: file.name, pages: pageCount });
-                extraPages += pageCount;
+            try {
+                const docRef = doc(db, "schedules", currentUser.uid);
+                await setDoc(docRef, userData);
+            } catch (e) {
+                console.error("儲存資料錯誤", e);
+                alert("雲端儲存失敗，請檢查網路連線");
             }
-            return { filesData, extraPages };
         }
 
+        // 完全移除複雜的非同步解析，直接安全抓取檔名與預設頁數
         document.getElementById('subject-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const name = document.getElementById('sub-name').value;
-            let targetInput = document.getElementById('sub-target').value;
-            let target = targetInput ? parseInt(targetInput) : 0;
-            const examDate = document.getElementById('sub-exam-date').value;
-            const fileInput = document.getElementById('sub-files');
+            try {
+                const name = document.getElementById('sub-name').value.trim();
+                let targetInput = document.getElementById('sub-target').value;
+                let target = targetInput ? parseInt(targetInput) : 1;
+                const examDate = document.getElementById('sub-exam-date').value;
+                const fileInput = document.getElementById('sub-files');
 
-            let files = [];
-            if (fileInput.files.length > 0) {
-                const parsed = await parseFiles(fileInput.files);
-                files = parsed.filesData;
-                if (!targetInput) target = parsed.extraPages;
+                let files = [];
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        files.push({
+                            name: fileInput.files[i].name,
+                            pages: target > 1 ? Math.round(target / fileInput.files.length) : 1
+                        });
+                    }
+                }
+
+                if (!name) {
+                    alert("請輸入科目名稱！");
+                    return;
+                }
+
+                if (target <= 0) target = 1;
+
+                userData.subjects.push({
+                    id: Date.now(),
+                    name,
+                    target,
+                    current: 0,
+                    examDate,
+                    files
+                });
+
+                document.getElementById('subject-form').reset();
+                await saveUserData();
+                renderApp();
+            } catch (err) {
+                console.error("建立科目發生例外", err);
+                alert("建立科目失敗：" + err.message);
             }
-
-            // 若完全沒填目標頁數也沒傳檔案，預設為 1 頁
-            if (!target || target <= 0) {
-                target = 1;
-            }
-
-            userData.subjects.push({
-                id: Date.now(),
-                name,
-                target,
-                current: 0,
-                examDate,
-                files
-            });
-
-            document.getElementById('subject-form').reset();
-            await saveUserData();
-            renderApp();
         });
 
         window.updateProgressDirect = async function(id, val) {
@@ -617,7 +611,7 @@
                             </td>
                             <td class="py-2.5 px-2 space-y-1">
                                 <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px]">⏱️ ${sch.duration || '0秒'}</span>
-                                <input type="text" value="${sch.range || ''}" placeholder="填寫範圍 (例: p.10-25，前後皆可填)" onchange="updateScheduleField(${sch.id}, 'range', this.value)" class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500">
+                                <input type="text" value="${sch.range || ''}" placeholder="填寫範圍 (例: p.10-25)" onchange="updateScheduleField(${sch.id}, 'range', this.value)" class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500">
                             </td>
                             <td class="py-2.5 px-2 text-right">
                                 <button onclick="deleteSchedule(${sch.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
