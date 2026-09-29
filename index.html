@@ -155,7 +155,7 @@
                         </div>
                         <div>
                             <label class="text-xs text-slate-500 block mb-1">選擇讀書科目</label>
-                            <select id="sch-subject" onchange="updateFileDropdown()" class="w-full px-3 py-2 border rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+                            <select id="sch-subject" onchange="window.updateFileDropdown()" class="w-full px-3 py-2 border rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500">
                                 <!-- 動態填入科目 -->
                             </select>
                         </div>
@@ -231,7 +231,10 @@
             const day = now.getDate();
             const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
             const weekStr = weekdays[now.getDay()];
-            document.getElementById('current-date-display').textContent = `今天是：${year}年${month}月${day}日 (星期${weekStr})`;
+            const dateEl = document.getElementById('current-date-display');
+            if(dateEl) {
+                dateEl.textContent = `今天是：${year}年${month}月${day}日 (星期${weekStr})`;
+            }
             
             // 預設排程日期的 input 為今天
             const schDateInput = document.getElementById('sch-date');
@@ -252,20 +255,22 @@
 
             if (user) {
                 currentUser = user;
-                loginPrompt.classList.add('hidden');
-                appContent.classList.remove('hidden');
-                loginBtn.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
-                userInfo.textContent = `Hi, ${user.displayName || user.email}`;
-                userInfo.classList.remove('hidden');
+                if(loginPrompt) loginPrompt.classList.add('hidden');
+                if(appContent) appContent.classList.remove('hidden');
+                if(loginBtn) loginBtn.classList.add('hidden');
+                if(logoutBtn) logoutBtn.classList.remove('hidden');
+                if(userInfo) {
+                    userInfo.textContent = `Hi, ${user.displayName || user.email}`;
+                    userInfo.classList.remove('hidden');
+                }
                 await loadUserData();
             } else {
                 currentUser = null;
-                loginPrompt.classList.remove('hidden');
-                appContent.classList.add('hidden');
-                loginBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
-                userInfo.classList.add('hidden');
+                if(loginPrompt) loginPrompt.classList.remove('hidden');
+                if(appContent) appContent.classList.add('hidden');
+                if(loginBtn) loginBtn.classList.remove('hidden');
+                if(logoutBtn) logoutBtn.classList.add('hidden');
+                if(userInfo) userInfo.classList.add('hidden');
             }
         });
 
@@ -422,7 +427,7 @@
 
             document.getElementById('schedule-form').reset();
             displayTodayDate();
-            updateFileDropdown();
+            window.updateFileDropdown();
             await saveUserData();
             renderApp();
         }
@@ -510,12 +515,15 @@
             alert("讀書計時已成功儲存至右側排程紀錄中！您隨時可以在表格中修改讀書範圍。");
         }
 
+        // 強制全局綁定更新檔案下拉選單
         window.updateFileDropdown = function() {
             const subjectSelect = document.getElementById('sch-subject');
             const fileSelect = document.getElementById('sch-file');
-            const selectedSubId = parseInt(subjectSelect.value);
+            if(!subjectSelect || !fileSelect) return;
 
+            const selectedSubId = parseInt(subjectSelect.value);
             const sub = userData.subjects.find(s => s.id === selectedSubId);
+            
             fileSelect.innerHTML = '<option value="">無特定檔案</option>';
             if (sub && sub.files && sub.files.length > 0) {
                 sub.files.forEach(f => {
@@ -563,8 +571,11 @@
                 const optionsHtml = userData.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
                 subjectSelect.innerHTML = optionsHtml;
                 timerSubSelect.innerHTML = `<option value="">選擇計時科目</option>` + optionsHtml;
-                if (currentSelectedSub) subjectSelect.value = currentSelectedSub;
-                updateFileDropdown();
+                
+                if (currentSelectedSub && userData.subjects.some(s => s.id == currentSelectedSub)) {
+                    subjectSelect.value = currentSelectedSub;
+                }
+                window.updateFileDropdown();
 
                 listEl.innerHTML = userData.subjects.map(s => {
                     const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
