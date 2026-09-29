@@ -136,13 +136,13 @@
                         <input id="sub-name" type="text" placeholder="例如：工程數學" class="w-full border rounded-lg px-3 py-2" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">考試日期</label>
+                        <label class="block text-sm font-medium mb-1">考試日期 (選填)</label>
                         <input id="sub-exam-date" type="date" class="w-full border rounded-lg px-3 py-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">讀書教材 PDF</label>
+                        <label class="block text-sm font-medium mb-1">讀書教材 PDF (可選填多份)</label>
                         <input id="material-files" type="file" accept=".pdf,application/pdf" multiple class="w-full border rounded-lg px-3 py-2 bg-white">
-                        <p class="text-xs text-gray-500 mt-2">可以一次選擇多份 PDF。PDF 只會在你的瀏覽器分析頁數。</p>
+                        <p class="text-xs text-gray-500 mt-2">可以一次選擇多份 PDF。建立後也可以隨時再追加。</p>
                     </div>
                     <div id="material-preview" class="space-y-2"></div>
                     <button type="submit" class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
@@ -354,7 +354,7 @@
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
-    // PDF 檔案選擇處理
+    // 建立新科目時的 PDF 檔案選擇處理
     const materialFiles = document.getElementById("material-files");
     materialFiles.addEventListener("change", async event => {
         const files = Array.from(event.target.files || []);
@@ -425,12 +425,11 @@
         const examDate = document.getElementById("sub-exam-date").value;
 
         if (!name) { alert("請輸入科目名稱"); return; }
-        if (pendingMaterials.length === 0) { alert("請至少選擇一份 PDF 教材"); return; }
 
         const subject = {
             id: makeId(),
             name,
-            examDate,
+            examDate: examDate || "",
             materials: pendingMaterials.map(material => ({
                 id: material.id,
                 fileName: material.fileName,
@@ -449,6 +448,43 @@
         alert("科目建立成功！");
     });
 
+    // 已建立的科目「分次追加 PDF」功能
+    window.addMoreMaterialsToSubject = async function(subjectId, event) {
+        const files = Array.from(event.target.files || []);
+        if (files.length === 0) return;
+
+        const subject = userData.subjects.find(s => s.id == subjectId);
+        if (!subject) return;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+                alert(`${file.name} 不是 PDF 檔案`);
+                continue;
+            }
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const pageCount = pdf.numPages;
+                subject.materials.push({
+                    id: makeId(),
+                    fileName: file.name,
+                    target: pageCount,
+                    current: 0
+                });
+                if (pdf.destroy) await pdf.destroy();
+            } catch (error) {
+                console.error(error);
+                alert(`無法讀取：${file.name}`);
+            }
+        }
+
+        saveUserData();
+        renderApp();
+        event.target.value = ""; // 清空 input 讓同一個檔案可以重複選取
+        alert("成功追加新教材！");
+    };
+
     // 刪除科目
     window.deleteSubject = function(subjectId) {
         const subject = userData.subjects.find(s => s.id == subjectId);
@@ -465,10 +501,6 @@
     window.deleteMaterial = function(subjectId, materialId) {
         const subject = userData.subjects.find(s => s.id == subjectId);
         if (!subject) return;
-        if (subject.materials.length <= 1) {
-            alert("每個科目至少需要保留一份教材，若要刪除全部請直接刪除該科目。");
-            return;
-        }
         if (!confirm("確定要刪除此教材嗎？")) return;
 
         subject.materials = subject.materials.filter(m => m.id != materialId);
@@ -683,10 +715,12 @@
         } else {
             subjectListEl.innerHTML = userData.subjects.map(s => {
                 let sTotal = 0, sCurrent = 0;
-                s.materials.forEach(m => {
-                    sTotal += m.target;
-                    sCurrent += m.current;
-                });
+                if (s.materials) {
+                    s.materials.forEach(m => {
+                        sTotal += m.target;
+                        sCurrent += m.current;
+                    });
+                }
                 let sProgress = sTotal > 0 ? Math.round((sCurrent / sTotal) * 100) : 0;
 
                 return `
@@ -694,7 +728,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="font-bold text-base">${escapeHtml(s.name)}</h3>
-                                ${s.examDate ? `<div class="text-xs text-gray-500 mt-0.5">考試日期：${s.examDate}</div>` : ''}
+                                ${s.examDate ? `<div class="text-xs text-gray-500 mt-0.5"><i class="fa-solid fa-calendar mr-1"></i>考試日期：${s.examDate}</div>` : ''}
                             </div>
                             <button onclick="deleteSubject('${s.id}')" class="text-gray-400 hover:text-red-600 text-sm">
                                 <i class="fa-solid fa-trash"></i> 刪除科目
@@ -710,8 +744,15 @@
                             </div>
                         </div>
                         <div class="border-t pt-3 space-y-2">
-                            <div class="text-xs font-medium text-gray-600">教材清單：</div>
-                            ${s.materials.map(m => {
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-gray-600">教材清單：</span>
+                                <label class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-md cursor-pointer">
+                                    <i class="fa-solid fa-plus mr-1"></i>加PDF
+                                    <input type="file" accept=".pdf,application/pdf" multiple class="hidden" onchange="addMoreMaterialsToSubject('${s.id}', event)">
+                                </label>
+                            </div>
+                            ${(!s.materials || s.materials.length === 0) ? `<div class="text-xs text-gray-400 py-1">尚未加入 PDF 教材</div>` : ''}
+                            ${(s.materials || []).map(m => {
                                 return `
                                     <div class="flex items-center justify-between text-xs bg-gray-50 p-2 rounded-lg">
                                         <div class="truncate mr-2">
