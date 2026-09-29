@@ -3,558 +3,2188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>極簡雲端讀書計時與頁數追蹤</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
+
+    <!-- PDF.js：只在瀏覽器讀取 PDF 頁數，不會上傳 PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
+
 <body class="bg-slate-100 min-h-screen text-slate-800">
 
-    <!-- 頁首：顯示日期與即時時間、登入狀態 -->
+    <!-- 頁首 -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+
             <h1 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-book-open text-indigo-600"></i> 極簡讀書規劃與計時器
+                <i class="fa-solid fa-book-open text-indigo-600"></i>
+                極簡讀書規劃與計時器
             </h1>
+
             <div class="flex items-center gap-3 text-sm">
-                <span id="current-datetime-display" class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-mono font-medium"></span>
-                <span id="user-info" class="text-slate-600 hidden"></span>
-                <button id="login-btn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium transition text-xs">
-                    <i class="fa-brands fa-google"></i> Google 登入
+
+                <span
+                    id="current-datetime-display"
+                    class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-mono font-medium"
+                ></span>
+
+                <span
+                    id="user-info"
+                    class="text-slate-600 hidden"
+                ></span>
+
+                <button
+                    id="login-btn"
+                    onclick="loginWithGoogle()"
+                    class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium transition text-xs"
+                >
+                    <i class="fa-brands fa-google"></i>
+                    Google 登入
                 </button>
-                <button id="logout-btn" onclick="logout()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition text-xs">
+
+                <button
+                    id="logout-btn"
+                    onclick="logout()"
+                    class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition text-xs"
+                >
                     登出
                 </button>
+
             </div>
         </div>
     </header>
 
+
     <!-- 主容器 -->
     <main class="max-w-7xl mx-auto px-4 py-6">
+
         <!-- 未登入提示 -->
-        <div id="login-prompt" class="bg-white border border-slate-200 rounded-2xl p-10 text-center my-12 shadow-sm">
+        <div
+            id="login-prompt"
+            class="bg-white border border-slate-200 rounded-2xl p-10 text-center my-12 shadow-sm"
+        >
+
             <i class="fa-solid fa-lock text-3xl text-indigo-500 mb-3"></i>
-            <h2 class="text-xl font-bold text-slate-800 mb-2">請先登入以同步您的讀書紀錄</h2>
-            <p class="text-slate-500 text-sm mb-6">登入 Google 帳號後，您的科目與計時資料將安全儲存於雲端。</p>
-            <button onclick="loginWithGoogle()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm">
-                <i class="fa-brands fa-google"></i> 使用 Google 帳號登入
+
+            <h2 class="text-xl font-bold text-slate-800 mb-2">
+                請先登入以同步您的讀書紀錄
+            </h2>
+
+            <p class="text-slate-500 text-sm mb-6">
+                登入 Google 帳號後，您的科目與計時資料將安全儲存於雲端。
+            </p>
+
+            <button
+                onclick="loginWithGoogle()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm"
+            >
+                <i class="fa-brands fa-google"></i>
+                使用 Google 帳號登入
             </button>
+
         </div>
 
+
         <!-- 登入後主畫面 -->
-        <div id="app-content" class="hidden space-y-6">
-            
-            <!-- 簡潔計時器與統計列 -->
+        <div
+            id="app-content"
+            class="hidden space-y-6"
+        >
+
+            <!-- 統計列 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- 簡單計時器面板 -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+
+                <!-- 計時器 -->
+                <div
+                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between"
+                >
+
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold text-slate-500">專注計時器 (最小單位秒)</span>
-                        <span id="timer-status-badge" class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium">就緒</span>
+
+                        <span class="text-xs font-bold text-slate-500">
+                            專注計時器
+                        </span>
+
+                        <span
+                            id="timer-status-badge"
+                            class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium"
+                        >
+                            就緒
+                        </span>
+
                     </div>
+
                     <div class="text-center my-2">
-                        <div id="simple-timer-display" class="text-3xl font-mono font-bold text-slate-800 tracking-wider">00:00:00</div>
+
+                        <div
+                            id="simple-timer-display"
+                            class="text-3xl font-mono font-bold text-slate-800 tracking-wider"
+                        >
+                            00:00:00
+                        </div>
+
                     </div>
+
                     <div class="space-y-2 pt-2 border-t border-slate-100">
-                        <select id="timer-subject-select" class="w-full text-xs px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 outline-none">
+
+                        <select
+                            id="timer-subject-select"
+                            class="w-full text-xs px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 outline-none"
+                        >
                             <option value="">選擇計時科目</option>
                         </select>
+
                         <div class="flex gap-2">
-                            <button id="timer-start-btn" onclick="startTimer()" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-xs font-bold transition">開始計時</button>
-                            <button id="timer-stop-btn" onclick="stopTimer()" disabled class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg text-xs font-bold transition opacity-50 cursor-not-allowed">結束紀錄</button>
+
+                            <button
+                                id="timer-start-btn"
+                                onclick="startTimer()"
+                                class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-xs font-bold transition"
+                            >
+                                開始計時
+                            </button>
+
+                            <button
+                                id="timer-stop-btn"
+                                onclick="stopTimer()"
+                                disabled
+                                class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg text-xs font-bold transition opacity-50 cursor-not-allowed"
+                            >
+                                結束紀錄
+                            </button>
+
                         </div>
+
                     </div>
+
                 </div>
+
 
                 <!-- 總科目數 -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div
+                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+                >
+
                     <div>
-                        <p class="text-xs text-slate-400 font-medium">總科目數</p>
-                        <h3 id="kpi-total-subjects" class="text-2xl font-bold text-slate-700 mt-1">0</h3>
+
+                        <p class="text-xs text-slate-400 font-medium">
+                            總科目數
+                        </p>
+
+                        <h3
+                            id="kpi-total-subjects"
+                            class="text-2xl font-bold text-slate-700 mt-1"
+                        >
+                            0
+                        </h3>
+
                     </div>
-                    <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"><i class="fa-solid fa-book"></i></div>
+
+                    <div
+                        class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"
+                    >
+                        <i class="fa-solid fa-book"></i>
+                    </div>
+
                 </div>
+
 
                 <!-- 總完成進度 -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div
+                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+                >
+
                     <div>
-                        <p class="text-xs text-slate-400 font-medium">總完成頁數 / 平均</p>
-                        <h3 id="kpi-completed-pages" class="text-lg font-bold text-emerald-600 mt-1">0 頁 (<span id="kpi-avg-progress">0%</span>)</h3>
+
+                        <p class="text-xs text-slate-400 font-medium">
+                            總完成頁數 / 平均
+                        </p>
+
+                        <h3
+                            id="kpi-completed-pages"
+                            class="text-lg font-bold text-emerald-600 mt-1"
+                        >
+                            0 頁
+                            <span id="kpi-avg-progress">
+                                (0%)
+                            </span>
+                        </h3>
+
                     </div>
-                    <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-check"></i></div>
+
+                    <div
+                        class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"
+                    >
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+
                 </div>
+
             </div>
 
-            <!-- 左右雙欄版面 -->
+
+            <!-- 左右雙欄 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- 左側：新增科目 -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+
+
+                <!-- 左側 -->
+                <div
+                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+                >
+
                     <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-indigo-600"></i> 新增讀書科目
+
+                        <i class="fa-solid fa-plus text-indigo-600"></i>
+
+                        新增讀書科目
+
                     </h2>
-                    <form id="subject-form" class="space-y-3">
+
+
+                    <!-- 新增科目 -->
+                    <form
+                        id="subject-form"
+                        class="space-y-3"
+                    >
+
+                        <!-- 科目名稱 -->
                         <div>
-                            <label class="text-[11px] text-slate-400 block mb-1">科目名稱</label>
-                            <input type="text" id="sub-name" placeholder="例如：經濟學" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
-                        </div>
-                        
-                        <div class="flex gap-2">
-                            <div class="w-1/2">
-                                <label class="text-[11px] text-slate-400 block mb-1">總頁數</label>
-                                <input type="number" id="sub-target" placeholder="例如: 300" min="1" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-[11px] text-slate-400 block mb-1">考試日期 (選填)</label>
-                                <input type="date" id="sub-exam-date" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
-                            </div>
+
+                            <label class="text-[11px] text-slate-400 block mb-1">
+                                科目名稱
+                            </label>
+
+                            <input
+                                type="text"
+                                id="sub-name"
+                                placeholder="例如：工程數學"
+                                required
+                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"
+                            >
+
                         </div>
 
-                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-xl text-xs font-medium transition">建立科目</button>
+
+                        <!-- PDF -->
+                        <div>
+
+                            <label class="text-[11px] text-slate-400 block mb-1">
+                                上傳 PDF
+                            </label>
+
+                            <input
+                                type="file"
+                                id="sub-file"
+                                accept=".pdf,application/pdf"
+                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white"
+                            >
+
+                            <p
+                                id="pdf-info"
+                                class="text-[11px] text-slate-400 mt-1"
+                            >
+                                PDF 只會在本機分析頁數，不會上傳或儲存。
+                            </p>
+
+                        </div>
+
+
+                        <!-- 頁數 + 考試日期 -->
+                        <div class="flex gap-2">
+
+                            <div class="w-1/2">
+
+                                <label class="text-[11px] text-slate-400 block mb-1">
+                                    總頁數
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="sub-target"
+                                    placeholder="PDF 自動取得"
+                                    min="1"
+                                    required
+                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"
+                                >
+
+                            </div>
+
+
+                            <div class="w-1/2">
+
+                                <label class="text-[11px] text-slate-400 block mb-1">
+                                    考試日期
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="sub-exam-date"
+                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-xl text-xs font-medium transition"
+                        >
+                            建立科目
+                        </button>
+
                     </form>
+
 
                     <hr class="border-slate-100">
 
-                    <h3 class="text-xs font-bold text-slate-700">現有科目與頁數追蹤</h3>
-                    <div id="subject-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-                        <!-- 動態插入科目 -->
+
+                    <h3 class="text-xs font-bold text-slate-700">
+                        現有科目與頁數追蹤
+                    </h3>
+
+
+                    <div
+                        id="subject-list"
+                        class="space-y-3 max-h-[350px] overflow-y-auto pr-1"
+                    >
                     </div>
+
                 </div>
 
-                <!-- 右側：排程與計時紀錄 -->
-                <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+
+                <!-- 右側 -->
+                <div
+                    class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+                >
+
                     <div class="flex justify-between items-center">
+
                         <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-days text-indigo-600"></i> 排程與讀書進度紀錄
+
+                            <i class="fa-solid fa-calendar-days text-indigo-600"></i>
+
+                            排程與讀書進度紀錄
+
                         </h2>
-                        <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1">
-                            <i class="fa-solid fa-download"></i> 匯出 CSV
+
+                        <button
+                            onclick="exportCSV()"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1"
+                        >
+                            <i class="fa-solid fa-download"></i>
+                            匯出 CSV
                         </button>
+
                     </div>
 
-                    <!-- 新增排程表單 -->
-                    <form id="schedule-form" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+
+                    <!-- 新增排程 -->
+                    <form
+                        id="schedule-form"
+                        class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3"
+                    >
+
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+
                             <div>
-                                <label class="text-[11px] text-slate-400 block mb-1">日期</label>
-                                <input type="date" id="sch-date" required class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
+
+                                <label class="text-[11px] text-slate-400 block mb-1">
+                                    日期
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="sch-date"
+                                    required
+                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none"
+                                >
+
                             </div>
+
+
                             <div>
-                                <label class="text-[11px] text-slate-400 block mb-1">時段</label>
-                                <input type="text" id="sch-time" placeholder="例如: 14:00-16:00" required class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
+
+                                <label class="text-[11px] text-slate-400 block mb-1">
+                                    時段
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="sch-time"
+                                    placeholder="例如: 14:00-16:00"
+                                    required
+                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none"
+                                >
+
                             </div>
+
+
                             <div>
-                                <label class="text-[11px] text-slate-400 block mb-1">選擇科目</label>
-                                <select id="sch-subject" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
-                                    <option value="">請選擇科目</option>
+
+                                <label class="text-[11px] text-slate-400 block mb-1">
+                                    選擇科目
+                                </label>
+
+                                <select
+                                    id="sch-subject"
+                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none"
+                                >
+                                    <option value="">
+                                        請選擇科目
+                                    </option>
                                 </select>
+
                             </div>
+
                         </div>
 
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-plus"></i> 新增排程紀錄
+
+                        <button
+                            type="submit"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            新增排程紀錄
                         </button>
+
                     </form>
 
-                    <!-- 紀錄表格 -->
+
+                    <!-- 表格 -->
                     <div class="overflow-x-auto">
+
                         <table class="w-full text-left border-collapse">
+
                             <thead>
+
                                 <tr class="border-b text-[11px] text-slate-400 uppercase">
-                                    <th class="py-2 px-2">日期 / 時段</th>
-                                    <th class="py-2 px-2">科目</th>
-                                    <th class="py-2 px-2">計時與讀書範圍 (例如: p.1-25)</th>
-                                    <th class="py-2 px-2 text-right">操作</th>
+
+                                    <th class="py-2 px-2">
+                                        日期 / 時段
+                                    </th>
+
+                                    <th class="py-2 px-2">
+                                        科目
+                                    </th>
+
+                                    <th class="py-2 px-2">
+                                        計時與讀書範圍
+                                    </th>
+
+                                    <th class="py-2 px-2 text-right">
+                                        操作
+                                    </th>
+
                                 </tr>
+
                             </thead>
-                            <tbody id="schedule-table-body" class="text-xs divide-y divide-slate-100">
-                                <!-- 動態排程 -->
+
+                            <tbody
+                                id="schedule-table-body"
+                                class="text-xs divide-y divide-slate-100"
+                            >
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </main>
 
-    <!-- Firebase SDK 引入與邏輯 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    <!-- Firebase -->
+    <script type="module">
+
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            setDoc
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+        // Firebase 設定
         const firebaseConfig = {
+
             apiKey: "AIzaSyDBv8wQy6iQdyp3TBDXzv5ZPJWsT3PYIXk",
+
             authDomain: "study-scheduler-21d31.firebaseapp.com",
+
             projectId: "study-scheduler-21d31",
+
             storageBucket: "study-scheduler-21d31.firebasestorage.app",
+
             messagingSenderId: "397621309129",
+
             appId: "1:397621309129:web:8c2893f7bac4429ff7e718",
+
             measurementId: "G-LSC7WV46Y9"
+
         };
 
+
         const app = initializeApp(firebaseConfig);
+
         const auth = getAuth(app);
+
         auth.useDeviceLanguage();
+
         const db = getFirestore(app);
+
         const provider = new GoogleAuthProvider();
 
+
         let currentUser = null;
-        let userData = { subjects: [], schedules: [] };
+
+        let userData = {
+            subjects: [],
+            schedules: []
+        };
+
 
         let timerInterval = null;
+
         let timerSeconds = 0;
+
         let activeTimerSession = null;
+
 
         window.userData = userData;
 
+
+        // ==============================
+        // 日期時間
+        // ==============================
+
         function updateDateTime() {
+
             const now = new Date();
+
             const year = now.getFullYear();
+
             const month = now.getMonth() + 1;
+
             const day = now.getDate();
-            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+
+            const weekdays = [
+                '日',
+                '一',
+                '二',
+                '三',
+                '四',
+                '五',
+                '六'
+            ];
+
             const weekStr = weekdays[now.getDay()];
-            
+
             const hours = String(now.getHours()).padStart(2, '0');
+
             const mins = String(now.getMinutes()).padStart(2, '0');
+
             const secs = String(now.getSeconds()).padStart(2, '0');
 
-            const displayEl = document.getElementById('current-datetime-display');
+
+            const displayEl =
+                document.getElementById(
+                    'current-datetime-display'
+                );
+
             if (displayEl) {
-                displayEl.textContent = `${year}年${month}月${day}日 (週${weekStr}) ${hours}:${mins}:${secs}`;
+
+                displayEl.textContent =
+                    `${year}年${month}月${day}日 (週${weekStr}) ${hours}:${mins}:${secs}`;
+
             }
 
-            const schDateInput = document.getElementById('sch-date');
-            if (schDateInput && !schDateInput.value) {
-                schDateInput.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            const schDateInput =
+                document.getElementById('sch-date');
+
+            if (
+                schDateInput &&
+                !schDateInput.value
+            ) {
+
+                schDateInput.value =
+                    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
             }
+
         }
+
+
         setInterval(updateDateTime, 1000);
+
         updateDateTime();
 
-        onAuthStateChanged(auth, async (user) => {
-            const loginPrompt = document.getElementById('login-prompt');
-            const appContent = document.getElementById('app-content');
-            const loginBtn = document.getElementById('login-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const userInfo = document.getElementById('user-info');
 
-            if (user) {
-                currentUser = user;
-                if(loginPrompt) loginPrompt.classList.add('hidden');
-                if(appContent) appContent.classList.remove('hidden');
-                if(loginBtn) loginBtn.classList.add('hidden');
-                if(logoutBtn) logoutBtn.classList.remove('hidden');
-                if(userInfo) {
-                    userInfo.textContent = `Hi, ${user.displayName || user.email}`;
-                    userInfo.classList.remove('hidden');
-                }
-                await loadUserData();
-            } else {
-                currentUser = null;
-                if(loginPrompt) loginPrompt.classList.remove('hidden');
-                if(appContent) appContent.classList.add('hidden');
-                if(loginBtn) loginBtn.classList.remove('hidden');
-                if(logoutBtn) logoutBtn.classList.add('hidden');
-                if(userInfo) userInfo.classList.add('hidden');
-            }
-        });
+        // ==============================
+        // PDF 頁數分析
+        // ==============================
 
-        window.loginWithGoogle = async function() {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                alert("登入失敗：" + error.message);
-            }
-        };
+        const pdfFileInput =
+            document.getElementById('sub-file');
 
-        window.logout = async function() {
-            await signOut(auth);
-        };
+        const pdfInfo =
+            document.getElementById('pdf-info');
 
-        async function loadUserData() {
-            if (!currentUser) return;
-            try {
-                const docRef = doc(db, "schedules", currentUser.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    userData = docSnap.data();
-                    if (!userData.subjects) userData.subjects = [];
-                    if (!userData.schedules) userData.schedules = [];
-                } else {
-                    userData = { subjects: [], schedules: [] };
-                    await saveUserData();
-                }
-            } catch (e) {
-                console.error("載入資料錯誤", e);
-                userData = { subjects: [], schedules: [] };
-            }
-            window.userData = userData;
-            renderApp();
-        }
+        const subTargetInput =
+            document.getElementById('sub-target');
 
-        async function saveUserData() {
-            if (!currentUser) return;
-            window.userData = userData;
-            try {
-                const docRef = doc(db, "schedules", currentUser.uid);
-                await setDoc(docRef, userData);
-            } catch (e) {
-                console.error("儲存資料錯誤", e);
-                alert("雲端儲存失敗，請檢查網路連線");
-            }
-        }
 
-        // 新增科目（只需名稱與總頁數）
-        document.getElementById('subject-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            try {
-                const name = document.getElementById('sub-name').value.trim();
-                const target = parseInt(document.getElementById('sub-target').value);
-                const examDate = document.getElementById('sub-exam-date').value;
+        pdfFileInput.addEventListener(
+            'change',
+            async function () {
 
-                if (!name || isNaN(target) || target <= 0) {
-                    alert("請填寫完整的科目名稱與有效的總頁數！");
+                const file = this.files[0];
+
+
+                if (!file) {
+
+                    pdfInfo.textContent =
+                        "尚未選擇 PDF";
+
                     return;
+
                 }
 
-                userData.subjects.push({
-                    id: Date.now(),
-                    name,
-                    target,
-                    current: 0,
-                    examDate
-                });
 
-                document.getElementById('subject-form').reset();
-                await saveUserData();
-                renderApp();
-            } catch (err) {
-                console.error("建立科目發生例外", err);
-                alert("建立科目失敗：" + err.message);
+                if (
+                    file.type !== "application/pdf" &&
+                    !file.name.toLowerCase().endsWith(".pdf")
+                ) {
+
+                    alert("請選擇 PDF 檔案！");
+
+                    this.value = "";
+
+                    return;
+
+                }
+
+
+                pdfInfo.textContent =
+                    "⏳ 正在分析 PDF 頁數...";
+
+
+                try {
+
+                    // 只在瀏覽器記憶體讀取
+                    const arrayBuffer =
+                        await file.arrayBuffer();
+
+
+                    const pdf =
+                        await pdfjsLib.getDocument({
+                            data: arrayBuffer
+                        }).promise;
+
+
+                    const pageCount =
+                        pdf.numPages;
+
+
+                    // 自動填入總頁數
+                    subTargetInput.value =
+                        pageCount;
+
+
+                    pdfInfo.textContent =
+                        `📄 ${file.name}｜共 ${pageCount} 頁`;
+
+
+                    console.log(
+                        "PDF 頁數：",
+                        pageCount
+                    );
+
+
+                } catch (error) {
+
+                    console.error(
+                        "PDF 分析失敗：",
+                        error
+                    );
+
+
+                    pdfInfo.textContent =
+                        "❌ PDF 分析失敗";
+
+
+                    alert(
+                        "無法讀取這個 PDF。\n請確認 PDF 檔案是否正常。"
+                    );
+
+                }
+
             }
-        });
+        );
 
-        window.updateProgressDirect = async function(id, val) {
-            const sub = userData.subjects.find(s => s.id === id);
-            if (sub) {
-                sub.current = Math.max(0, Math.min(sub.target, parseInt(val) || 0));
-                await saveUserData();
-                renderApp();
+
+        // ==============================
+        // Firebase 登入狀態
+        // ==============================
+
+        onAuthStateChanged(
+            auth,
+            async (user) => {
+
+                const loginPrompt =
+                    document.getElementById(
+                        'login-prompt'
+                    );
+
+                const appContent =
+                    document.getElementById(
+                        'app-content'
+                    );
+
+                const loginBtn =
+                    document.getElementById(
+                        'login-btn'
+                    );
+
+                const logoutBtn =
+                    document.getElementById(
+                        'logout-btn'
+                    );
+
+                const userInfo =
+                    document.getElementById(
+                        'user-info'
+                    );
+
+
+                if (user) {
+
+                    currentUser = user;
+
+
+                    loginPrompt.classList.add(
+                        'hidden'
+                    );
+
+                    appContent.classList.remove(
+                        'hidden'
+                    );
+
+                    loginBtn.classList.add(
+                        'hidden'
+                    );
+
+                    logoutBtn.classList.remove(
+                        'hidden'
+                    );
+
+
+                    userInfo.textContent =
+                        `Hi, ${user.displayName || user.email}`;
+
+                    userInfo.classList.remove(
+                        'hidden'
+                    );
+
+
+                    await loadUserData();
+
+
+                } else {
+
+                    currentUser = null;
+
+
+                    loginPrompt.classList.remove(
+                        'hidden'
+                    );
+
+                    appContent.classList.add(
+                        'hidden'
+                    );
+
+                    loginBtn.classList.remove(
+                        'hidden'
+                    );
+
+                    logoutBtn.classList.add(
+                        'hidden'
+                    );
+
+                    userInfo.classList.add(
+                        'hidden'
+                    );
+
+                }
+
             }
-        }
+        );
 
-        window.deleteSubject = async function(id) {
-            userData.subjects = userData.subjects.filter(s => s.id !== id);
-            userData.schedules = userData.schedules.filter(sch => sch.subjectId !== id);
-            await saveUserData();
-            renderApp();
-        }
 
-        document.getElementById('schedule-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const date = document.getElementById('sch-date').value;
-            const time = document.getElementById('sch-time').value;
-            const subjectId = parseInt(document.getElementById('sch-subject').value);
+        // ==============================
+        // Google 登入
+        // ==============================
 
-            if (!subjectId) {
-                alert("請選擇科目！");
-                return;
-            }
+        window.loginWithGoogle =
+            async function () {
 
-            userData.schedules.unshift({
-                id: Date.now(),
-                date,
-                time,
-                subjectId,
-                duration: "0秒",
-                range: ""
-            });
+                try {
 
-            document.getElementById('schedule-form').reset();
-            updateDateTime();
-            await saveUserData();
-            renderApp();
-        });
+                    await signInWithPopup(
+                        auth,
+                        provider
+                    );
 
-        window.deleteSchedule = async function(id) {
-            userData.schedules = userData.schedules.filter(sch => sch.id !== id);
-            await saveUserData();
-            renderApp();
-        }
+                } catch (error) {
 
-        window.updateScheduleField = async function(id, field, value) {
-            const sch = userData.schedules.find(s => s.id === id);
-            if (sch) {
-                sch[field] = value;
-                await saveUserData();
-            }
-        }
+                    console.error(
+                        "登入失敗",
+                        error
+                    );
 
-        window.startTimer = function() {
-            const subId = parseInt(document.getElementById('timer-subject-select').value);
-            if (!subId) {
-                alert("請先選擇要計時的科目！");
-                return;
-            }
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}開始`;
+                    alert(
+                        "登入失敗：" +
+                        error.message
+                    );
 
-            activeTimerSession = {
-                id: Date.now(),
-                date: dateStr,
-                time: timeStr,
-                subjectId: subId,
-                seconds: 0,
-                range: ""
+                }
+
             };
 
-            timerSeconds = 0;
-            document.getElementById('timer-status-badge').textContent = `計時中...`;
-            document.getElementById('timer-status-badge').className = "text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium";
-            document.getElementById('timer-start-btn').disabled = true;
-            document.getElementById('timer-start-btn').classList.add('opacity-50');
-            document.getElementById('timer-stop-btn').disabled = false;
-            document.getElementById('timer-stop-btn').classList.remove('opacity-50');
 
-            timerInterval = setInterval(() => {
-                timerSeconds++;
-                activeTimerSession.seconds = timerSeconds;
-                const hrs = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
-                const mins = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
-                const secs = String(timerSeconds % 60).padStart(2, '0');
-                document.getElementById('simple-timer-display').textContent = `${hrs}:${mins}:${secs}`;
-            }, 1000);
-        }
+        // ==============================
+        // 登出
+        // ==============================
 
-        window.stopTimer = async function() {
-            if (!activeTimerSession) return;
-            clearInterval(timerInterval);
+        window.logout =
+            async function () {
 
-            const hrs = Math.floor(activeTimerSession.seconds / 3600);
-            const mins = Math.floor((activeTimerSession.seconds % 3600) / 60);
-            const secs = activeTimerSession.seconds % 60;
-            
-            let durStr = '';
-            if(hrs > 0) durStr += `${hrs}時`;
-            if(mins > 0 || hrs > 0) durStr += `${mins}分`;
-            durStr += `${secs}秒`;
-            activeTimerSession.duration = durStr;
+                await signOut(auth);
 
-            userData.schedules.unshift(activeTimerSession);
+            };
 
-            activeTimerSession = null;
-            timerSeconds = 0;
-            document.getElementById('simple-timer-display').textContent = "00:00:00";
-            document.getElementById('timer-status-badge').textContent = "就緒";
-            document.getElementById('timer-status-badge').className = "text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium";
-            document.getElementById('timer-start-btn').disabled = false;
-            document.getElementById('timer-start-btn').classList.remove('opacity-50');
-            document.getElementById('timer-stop-btn').disabled = true;
-            document.getElementById('timer-stop-btn').classList.add('opacity-50');
 
-            await saveUserData();
+        // ==============================
+        // 讀取 Firebase 資料
+        // ==============================
+
+        async function loadUserData() {
+
+            if (!currentUser) return;
+
+
+            try {
+
+                const docRef =
+                    doc(
+                        db,
+                        "schedules",
+                        currentUser.uid
+                    );
+
+
+                const docSnap =
+                    await getDoc(docRef);
+
+
+                if (docSnap.exists()) {
+
+                    userData =
+                        docSnap.data();
+
+
+                    if (!userData.subjects) {
+
+                        userData.subjects = [];
+
+                    }
+
+
+                    if (!userData.schedules) {
+
+                        userData.schedules = [];
+
+                    }
+
+
+                } else {
+
+                    userData = {
+                        subjects: [],
+                        schedules: []
+                    };
+
+
+                    await saveUserData();
+
+                }
+
+
+            } catch (e) {
+
+                console.error(
+                    "載入資料錯誤",
+                    e
+                );
+
+
+                userData = {
+                    subjects: [],
+                    schedules: []
+                };
+
+            }
+
+
+            window.userData =
+                userData;
+
+
             renderApp();
-            alert("計時完成！已新增至下方紀錄。");
+
         }
+
+
+        // ==============================
+        // 儲存 Firebase
+        // ==============================
+
+        async function saveUserData() {
+
+            if (!currentUser) {
+
+                alert("目前沒有登入帳號！");
+
+                return false;
+
+            }
+
+
+            window.userData =
+                userData;
+
+
+            try {
+
+                const docRef =
+                    doc(
+                        db,
+                        "schedules",
+                        currentUser.uid
+                    );
+
+
+                await setDoc(
+                    docRef,
+                    {
+                        subjects:
+                            userData.subjects || [],
+
+                        schedules:
+                            userData.schedules || []
+                    }
+                );
+
+
+                console.log(
+                    "✅ 資料儲存成功"
+                );
+
+
+                return true;
+
+
+            } catch (e) {
+
+                console.error(
+                    "❌ Firestore 儲存失敗：",
+                    e
+                );
+
+
+                alert(
+                    "雲端儲存失敗！\n\n" +
+                    e.message
+                );
+
+
+                return false;
+
+            }
+
+        }
+
+
+        // ==============================
+        // 新增科目
+        // ==============================
+
+        document
+            .getElementById('subject-form')
+            .addEventListener(
+                'submit',
+                async function (e) {
+
+                    e.preventDefault();
+
+
+                    try {
+
+                        const name =
+                            document
+                                .getElementById('sub-name')
+                                .value
+                                .trim();
+
+
+                        const target =
+                            parseInt(
+                                document
+                                    .getElementById('sub-target')
+                                    .value
+                            );
+
+
+                        const examDate =
+                            document
+                                .getElementById('sub-exam-date')
+                                .value;
+
+
+                        const pdfFile =
+                            document
+                                .getElementById('sub-file')
+                                .files[0];
+
+
+                        if (
+                            !name ||
+                            isNaN(target) ||
+                            target <= 0
+                        ) {
+
+                            alert(
+                                "請填寫完整的科目名稱與有效的總頁數！"
+                            );
+
+                            return;
+
+                        }
+
+
+                        userData.subjects.push({
+
+                            id: Date.now(),
+
+                            name: name,
+
+                            target: target,
+
+                            current: 0,
+
+                            examDate: examDate,
+
+                            fileName:
+                                pdfFile
+                                    ? pdfFile.name
+                                    : ""
+
+                        });
+
+
+                        const saved =
+                            await saveUserData();
+
+
+                        if (!saved) {
+
+                            return;
+
+                        }
+
+
+                        document
+                            .getElementById('subject-form')
+                            .reset();
+
+
+                        document
+                            .getElementById('pdf-info')
+                            .textContent =
+                            "PDF 只會在本機分析頁數，不會上傳或儲存。";
+
+
+                        renderApp();
+
+
+                        alert(
+                            "✅ 科目建立成功！"
+                        );
+
+
+                    } catch (err) {
+
+                        console.error(
+                            "建立科目錯誤：",
+                            err
+                        );
+
+
+                        alert(
+                            "建立科目失敗：" +
+                            err.message
+                        );
+
+                    }
+
+                }
+            );
+
+
+        // ==============================
+        // 更新已讀頁數
+        // ==============================
+
+        window.updateProgressDirect =
+            async function (
+                id,
+                val
+            ) {
+
+                const sub =
+                    userData.subjects.find(
+                        s => s.id === id
+                    );
+
+
+                if (sub) {
+
+                    sub.current =
+                        Math.max(
+                            0,
+                            Math.min(
+                                sub.target,
+                                parseInt(val) || 0
+                            )
+                        );
+
+
+                    await saveUserData();
+
+                    renderApp();
+
+                }
+
+            };
+
+
+        // ==============================
+        // 刪除科目
+        // ==============================
+
+        window.deleteSubject =
+            async function (id) {
+
+                userData.subjects =
+                    userData.subjects.filter(
+                        s => s.id !== id
+                    );
+
+
+                userData.schedules =
+                    userData.schedules.filter(
+                        sch =>
+                            sch.subjectId !== id
+                    );
+
+
+                await saveUserData();
+
+                renderApp();
+
+            };
+
+
+        // ==============================
+        // 新增排程
+        // ==============================
+
+        document
+            .getElementById('schedule-form')
+            .addEventListener(
+                'submit',
+                async function (e) {
+
+                    e.preventDefault();
+
+
+                    const date =
+                        document
+                            .getElementById('sch-date')
+                            .value;
+
+
+                    const time =
+                        document
+                            .getElementById('sch-time')
+                            .value;
+
+
+                    const subjectId =
+                        parseInt(
+                            document
+                                .getElementById('sch-subject')
+                                .value
+                        );
+
+
+                    if (!subjectId) {
+
+                        alert(
+                            "請選擇科目！"
+                        );
+
+                        return;
+
+                    }
+
+
+                    userData.schedules.unshift({
+
+                        id: Date.now(),
+
+                        date: date,
+
+                        time: time,
+
+                        subjectId: subjectId,
+
+                        duration: "0秒",
+
+                        range: ""
+
+                    });
+
+
+                    document
+                        .getElementById('schedule-form')
+                        .reset();
+
+
+                    updateDateTime();
+
+
+                    await saveUserData();
+
+                    renderApp();
+
+                }
+            );
+
+
+        // ==============================
+        // 刪除排程
+        // ==============================
+
+        window.deleteSchedule =
+            async function (id) {
+
+                userData.schedules =
+                    userData.schedules.filter(
+                        sch =>
+                            sch.id !== id
+                    );
+
+
+                await saveUserData();
+
+                renderApp();
+
+            };
+
+
+        // ==============================
+        // 修改讀書範圍
+        // ==============================
+
+        window.updateScheduleField =
+            async function (
+                id,
+                field,
+                value
+            ) {
+
+                const sch =
+                    userData.schedules.find(
+                        s => s.id === id
+                    );
+
+
+                if (sch) {
+
+                    sch[field] =
+                        value;
+
+                    await saveUserData();
+
+                }
+
+            };
+
+
+        // ==============================
+        // 開始計時
+        // ==============================
+
+        window.startTimer =
+            function () {
+
+                const subId =
+                    parseInt(
+                        document
+                            .getElementById(
+                                'timer-subject-select'
+                            )
+                            .value
+                    );
+
+
+                if (!subId) {
+
+                    alert(
+                        "請先選擇要計時的科目！"
+                    );
+
+                    return;
+
+                }
+
+
+                const now =
+                    new Date();
+
+
+                const dateStr =
+                    now
+                        .toISOString()
+                        .split('T')[0];
+
+
+                const timeStr =
+                    `${String(
+                        now.getHours()
+                    ).padStart(2, '0')}:` +
+                    `${String(
+                        now.getMinutes()
+                    ).padStart(2, '0')}:` +
+                    `${String(
+                        now.getSeconds()
+                    ).padStart(2, '0')}開始`;
+
+
+                activeTimerSession = {
+
+                    id: Date.now(),
+
+                    date: dateStr,
+
+                    time: timeStr,
+
+                    subjectId: subId,
+
+                    seconds: 0,
+
+                    range: ""
+
+                };
+
+
+                timerSeconds = 0;
+
+
+                document
+                    .getElementById(
+                        'timer-status-badge'
+                    )
+                    .textContent =
+                    "計時中...";
+
+
+                document
+                    .getElementById(
+                        'timer-status-badge'
+                    )
+                    .className =
+                    "text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium";
+
+
+                document
+                    .getElementById(
+                        'timer-start-btn'
+                    )
+                    .disabled =
+                    true;
+
+
+                document
+                    .getElementById(
+                        'timer-start-btn'
+                    )
+                    .classList.add(
+                        'opacity-50'
+                    );
+
+
+                document
+                    .getElementById(
+                        'timer-stop-btn'
+                    )
+                    .disabled =
+                    false;
+
+
+                document
+                    .getElementById(
+                        'timer-stop-btn'
+                    )
+                    .classList.remove(
+                        'opacity-50'
+                    );
+
+
+                timerInterval =
+                    setInterval(
+                        () => {
+
+                            timerSeconds++;
+
+                            activeTimerSession.seconds =
+                                timerSeconds;
+
+
+                            const hrs =
+                                String(
+                                    Math.floor(
+                                        timerSeconds /
+                                        3600
+                                    )
+                                ).padStart(
+                                    2,
+                                    '0'
+                                );
+
+
+                            const mins =
+                                String(
+                                    Math.floor(
+                                        (
+                                            timerSeconds %
+                                            3600
+                                        ) / 60
+                                    )
+                                ).padStart(
+                                    2,
+                                    '0'
+                                );
+
+
+                            const secs =
+                                String(
+                                    timerSeconds %
+                                    60
+                                ).padStart(
+                                    2,
+                                    '0'
+                                );
+
+
+                            document
+                                .getElementById(
+                                    'simple-timer-display'
+                                )
+                                .textContent =
+                                `${hrs}:${mins}:${secs}`;
+
+                        },
+                        1000
+                    );
+
+            };
+
+
+        // ==============================
+        // 結束計時
+        // ==============================
+
+        window.stopTimer =
+            async function () {
+
+                if (!activeTimerSession)
+                    return;
+
+
+                clearInterval(
+                    timerInterval
+                );
+
+
+                const hrs =
+                    Math.floor(
+                        activeTimerSession.seconds /
+                        3600
+                    );
+
+
+                const mins =
+                    Math.floor(
+                        (
+                            activeTimerSession.seconds %
+                            3600
+                        ) / 60
+                    );
+
+
+                const secs =
+                    activeTimerSession.seconds %
+                    60;
+
+
+                let durStr = "";
+
+
+                if (hrs > 0)
+                    durStr += `${hrs}時`;
+
+
+                if (
+                    mins > 0 ||
+                    hrs > 0
+                )
+                    durStr += `${mins}分`;
+
+
+                durStr += `${secs}秒`;
+
+
+                activeTimerSession.duration =
+                    durStr;
+
+
+                userData.schedules.unshift(
+                    activeTimerSession
+                );
+
+
+                activeTimerSession = null;
+
+                timerSeconds = 0;
+
+
+                document
+                    .getElementById(
+                        'simple-timer-display'
+                    )
+                    .textContent =
+                    "00:00:00";
+
+
+                document
+                    .getElementById(
+                        'timer-status-badge'
+                    )
+                    .textContent =
+                    "就緒";
+
+
+                document
+                    .getElementById(
+                        'timer-status-badge'
+                    )
+                    .className =
+                    "text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium";
+
+
+                document
+                    .getElementById(
+                        'timer-start-btn'
+                    )
+                    .disabled =
+                    false;
+
+
+                document
+                    .getElementById(
+                        'timer-start-btn'
+                    )
+                    .classList.remove(
+                        'opacity-50'
+                    );
+
+
+                document
+                    .getElementById(
+                        'timer-stop-btn'
+                    )
+                    .disabled =
+                    true;
+
+
+                document
+                    .getElementById(
+                        'timer-stop-btn'
+                    )
+                    .classList.add(
+                        'opacity-50'
+                    );
+
+
+                await saveUserData();
+
+                renderApp();
+
+
+                alert(
+                    "計時完成！已新增至下方紀錄。"
+                );
+
+            };
+
+
+        // ==============================
+        // 畫面渲染
+        // ==============================
 
         function renderApp() {
-            window.userData = userData;
-            const totalSub = userData.subjects.length;
-            const totalPages = userData.subjects.reduce((sum, s) => sum + s.current, 0);
-            const totalTarget = userData.subjects.reduce((sum, s) => sum + s.target, 0);
-            const avgProg = totalTarget > 0 ? Math.round((totalPages / totalTarget) * 100) : 0;
 
-            document.getElementById('kpi-total-subjects').textContent = totalSub;
-            document.getElementById('kpi-completed-pages').textContent = `${totalPages} 頁`;
-            document.getElementById('kpi-avg-progress').textContent = `${avgProg}%`;
+            window.userData =
+                userData;
 
-            const listEl = document.getElementById('subject-list');
-            const subjectSelect = document.getElementById('sch-subject');
-            const timerSubSelect = document.getElementById('timer-subject-select');
 
-            if (userData.subjects.length === 0) {
-                listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">尚無科目</p>`;
-                subjectSelect.innerHTML = `<option value="">請先新增科目</option>`;
-                timerSubSelect.innerHTML = `<option value="">請先新增科目</option>`;
-            } else {
-                const currentSubId = subjectSelect.value;
-                const opts = userData.subjects.map(s => `<option value="${s.id}">${s.name} (總 ${s.target} 頁)</option>`).join('');
-                subjectSelect.innerHTML = `<option value="">請選擇科目</option>` + opts;
-                timerSubSelect.innerHTML = `<option value="">選擇計時科目</option>` + opts;
-                if(currentSubId) subjectSelect.value = currentSubId;
+            const totalSub =
+                userData.subjects.length;
 
-                listEl.innerHTML = userData.subjects.map(s => {
-                    const percent = s.target > 0 ? Math.min(100, Math.round((s.current / s.target) * 100)) : 0;
-                    const remaining = Math.max(0, s.target - s.current);
 
-                    return `
-                        <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-200">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-slate-700 text-xs">${s.name}</span>
-                                <button onclick="deleteSubject(${s.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                            <div class="flex justify-between text-[11px] text-slate-500">
-                                <span>已讀: <b>${s.current}</b> / 總共 ${s.target} 頁</span>
-                                <span class="text-indigo-600 font-bold">剩餘 ${remaining} 頁 (${percent}%)</span>
-                            </div>
-                            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-indigo-600 h-full" style="width: ${percent}%"></div>
-                            </div>
-                            <div class="flex items-center justify-between pt-1">
-                                <span class="text-[11px] text-slate-500">直接更新已讀頁數：</span>
-                                <input type="number" value="${s.current}" min="0" max="${s.target}" onchange="updateProgressDirect(${s.id}, this.value)" class="w-20 px-2 py-0.5 text-xs border rounded bg-white text-center font-medium outline-none">
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+            const totalPages =
+                userData.subjects.reduce(
+                    (
+                        sum,
+                        s
+                    ) =>
+                        sum +
+                        (
+                            Number(s.current) ||
+                            0
+                        ),
+                    0
+                );
+
+
+            const totalTarget =
+                userData.subjects.reduce(
+                    (
+                        sum,
+                        s
+                    ) =>
+                        sum +
+                        (
+                            Number(s.target) ||
+                            0
+                        ),
+                    0
+                );
+
+
+            const avgProg =
+                totalTarget > 0
+                    ? Math.round(
+                        (
+                            totalPages /
+                            totalTarget
+                        ) *
+                        100
+                    )
+                    : 0;
+
+
+            // KPI
+            const totalSubjectsEl =
+                document.getElementById(
+                    'kpi-total-subjects'
+                );
+
+
+            const completedPagesEl =
+                document.getElementById(
+                    'kpi-completed-pages'
+                );
+
+
+            const avgProgressEl =
+                document.getElementById(
+                    'kpi-avg-progress'
+                );
+
+
+            if (totalSubjectsEl) {
+
+                totalSubjectsEl.textContent =
+                    totalSub;
+
             }
 
-            const tbody = document.getElementById('schedule-table-body');
-            if (!userData.schedules || userData.schedules.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400 text-xs">尚無紀錄</td></tr>`;
-            } else {
-                tbody.innerHTML = userData.schedules.map(sch => {
-                    const sub = userData.subjects.find(s => s.id === sch.subjectId);
-                    const subName = sub ? sub.name : '已刪除';
 
-                    return `
-                        <tr class="border-b hover:bg-slate-50">
-                            <td class="py-2.5 px-2">
-                                <span class="block text-slate-600 text-[11px] font-medium">${sch.date}</span>
-                                <span class="text-[11px] text-indigo-600 font-bold">${sch.time}</span>
-                            </td>
-                            <td class="py-2.5 px-2">
-                                <span class="font-bold text-slate-700">${subName}</span>
-                            </td>
-                            <td class="py-2.5 px-2 space-y-1">
-                                <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px]">⏱️ ${sch.duration || '0秒'}</span>
-                                <input type="text" value="${sch.range || ''}" placeholder="填寫讀書範圍 (例: p.10-25)" onchange="updateScheduleField(${sch.id}, 'range', this.value)" class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500">
-                            </td>
-                            <td class="py-2.5 px-2 text-right">
-                                <button onclick="deleteSchedule(${sch.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
+            if (completedPagesEl) {
+
+                completedPagesEl.firstChild.textContent =
+                    `${totalPages} 頁 `;
+
             }
+
+
+            if (avgProgressEl) {
+
+                avgProgressEl.textContent =
+                    `(${avgProg}%)`;
+
+            }
+
+
+            // 元件
+            const listEl =
+                document.getElementById(
+                    'subject-list'
+                );
+
+
+            const subjectSelect =
+                document.getElementById(
+                    'sch-subject'
+                );
+
+
+            const timerSubSelect =
+                document.getElementById(
+                    'timer-subject-select'
+                );
+
+
+            // 科目
+            if (
+                userData.subjects.length === 0
+            ) {
+
+                listEl.innerHTML =
+                    `
+                    <p class="text-xs text-slate-400 text-center py-3">
+                        尚無科目
+                    </p>
+                    `;
+
+
+                subjectSelect.innerHTML =
+                    `
+                    <option value="">
+                        請先新增科目
+                    </option>
+                    `;
+
+
+                timerSubSelect.innerHTML =
+                    `
+                    <option value="">
+                        請先新增科目
+                    </option>
+                    `;
+
+            } else {
+
+                const currentSubId =
+                    subjectSelect.value;
+
+
+                const opts =
+                    userData.subjects
+                        .map(
+                            s =>
+                                `
+                                <option value="${s.id}">
+                                    ${s.name}
+                                    （總 ${s.target} 頁）
+                                </option>
+                                `
+                        )
+                        .join('');
+
+
+                subjectSelect.innerHTML =
+                    `
+                    <option value="">
+                        請選擇科目
+                    </option>
+                    ` +
+                    opts;
+
+
+                timerSubSelect.innerHTML =
+                    `
+                    <option value="">
+                        選擇計時科目
+                    </option>
+                    ` +
+                    opts;
+
+
+                if (currentSubId) {
+
+                    subjectSelect.value =
+                        currentSubId;
+
+                }
+
+
+                listEl.innerHTML =
+                    userData.subjects
+                        .map(
+                            s => {
+
+                                const target =
+                                    Number(s.target) ||
+                                    0;
+
+
+                                const current =
+                                    Number(s.current) ||
+                                    0;
+
+
+                                const percent =
+                                    target > 0
+                                        ? Math.min(
+                                            100,
+                                            Math.round(
+                                                (
+                                                    current /
+                                                    target
+                                                ) *
+                                                100
+                                            )
+                                        )
+                                        : 0;
+
+
+                                const remaining =
+                                    Math.max(
+                                        0,
+                                        target -
+                                        current
+                                    );
+
+
+                                return `
+                                    <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-200">
+
+                                        <div class="flex justify-between items-center">
+
+                                            <div>
+
+                                                <span class="font-bold text-slate-700 text-xs">
+                                                    ${s.name}
+                                                </span>
+
+                                                ${
+                                                    s.fileName
+                                                        ? `
+                                                            <div class="text-[10px] text-slate-400 mt-0.5">
+                                                                📄 ${s.fileName}
+                                                            </div>
+                                                        `
+                                                        : ''
+                                                }
+
+                                            </div>
+
+                                            <button
+                                                onclick="deleteSubject(${s.id})"
+                                                class="text-slate-400 hover:text-red-500 text-xs"
+                                            >
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+
+                                        </div>
+
+
+                                        <div class="flex justify-between text-[11px] text-slate-500">
+
+                                            <span>
+                                                已讀:
+                                                <b>${current}</b>
+                                                /
+                                                總共 ${target} 頁
+                                            </span>
+
+                                            <span class="text-indigo-600 font-bold">
+                                                剩餘 ${remaining} 頁
+                                                (${percent}%)
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+
+                                            <div
+                                                class="bg-indigo-600 h-full"
+                                                style="width: ${percent}%"
+                                            ></div>
+
+                                        </div>
+
+
+                                        <div class="flex items-center justify-between pt-1">
+
+                                            <span class="text-[11px] text-slate-500">
+                                                已讀頁數：
+                                            </span>
+
+                                            <input
+                                                type="number"
+                                                value="${current}"
+                                                min="0"
+                                                max="${target}"
+                                                onchange="updateProgressDirect(${s.id}, this.value)"
+                                                class="w-20 px-2 py-0.5 text-xs border rounded bg-white text-center font-medium outline-none"
+                                            >
+
+                                        </div>
+
+
+                                        ${
+                                            s.examDate
+                                                ? `
+                                                    <div class="text-[10px] text-slate-400">
+                                                        📅 考試日期：${s.examDate}
+                                                    </div>
+                                                `
+                                                : ''
+                                        }
+
+                                    </div>
+                                `;
+
+                            }
+                        )
+                        .join('');
+
+            }
+
+
+            // ==============================
+            // 排程
+            // ==============================
+
+            const tbody =
+                document.getElementById(
+                    'schedule-table-body'
+                );
+
+
+            if (
+                !userData.schedules ||
+                userData.schedules.length === 0
+            ) {
+
+                tbody.innerHTML =
+                    `
+                    <tr>
+                        <td
+                            colspan="4"
+                            class="text-center py-4 text-slate-400 text-xs"
+                        >
+                            尚無紀錄
+                        </td>
+                    </tr>
+                    `;
+
+            } else {
+
+                tbody.innerHTML =
+                    userData.schedules
+                        .map(
+                            sch => {
+
+                                const sub =
+                                    userData.subjects.find(
+                                        s =>
+                                            s.id ===
+                                            sch.subjectId
+                                    );
+
+
+                                const subName =
+                                    sub
+                                        ? sub.name
+                                        : '已刪除';
+
+
+                                return `
+                                    <tr class="border-b hover:bg-slate-50">
+
+                                        <td class="py-2.5 px-2">
+
+                                            <span class="block text-slate-600 text-[11px] font-medium">
+                                                ${sch.date}
+                                            </span>
+
+                                            <span class="text-[11px] text-indigo-600 font-bold">
+                                                ${sch.time}
+                                            </span>
+
+                                        </td>
+
+
+                                        <td class="py-2.5 px-2">
+
+                                            <span class="font-bold text-slate-700">
+                                                ${subName}
+                                            </span>
+
+                                        </td>
+
+
+                                        <td class="py-2.5 px-2 space-y-1">
+
+                                            <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px]">
+                                                ⏱️ ${sch.duration || '0秒'}
+                                            </span>
+
+                                            <input
+                                                type="text"
+                                                value="${sch.range || ''}"
+                                                placeholder="填寫讀書範圍，例如：p.10-25"
+                                                onchange="updateScheduleField(${sch.id}, 'range', this.value)"
+                                                class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500"
+                                            >
+
+                                        </td>
+
+
+                                        <td class="py-2.5 px-2 text-right">
+
+                                            <button
+                                                onclick="deleteSchedule(${sch.id})"
+                                                class="text-slate-400 hover:text-red-500 text-xs"
+                                            >
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+
+                                        </td>
+
+                                    </tr>
+                                `;
+
+                            }
+                        )
+                        .join('');
+
+            }
+
         }
 
-        window.exportCSV = function() {
-            let csv = '\uFEFF日期,時段,科目,計時,範圍\n';
-            userData.schedules.forEach(sch => {
-                const sub = userData.subjects.find(s => s.id === sch.subjectId);
-                csv += `${sch.date},${sch.time},${sub ? sub.name : ''},${sch.duration || ''},"${sch.range || ''}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'study_records.csv';
-            a.click();
-        }
+
+        // ==============================
+        // CSV
+        // ==============================
+
+        window.exportCSV =
+            function () {
+
+                let csv =
+                    '\uFEFF日期,時段,科目,計時,範圍\n';
+
+
+                userData.schedules.forEach(
+                    sch => {
+
+                        const sub =
+                            userData.subjects.find(
+                                s =>
+                                    s.id ===
+                                    sch.subjectId
+                            );
+
+
+                        csv +=
+                            `${sch.date},${sch.time},${sub ? sub.name : ''},${sch.duration || ''},"${sch.range || ''}"\n`;
+
+                    }
+                );
+
+
+                const blob =
+                    new Blob(
+                        [csv],
+                        {
+                            type:
+                                'text/csv;charset=utf-8;'
+                        }
+                    );
+
+
+                const url =
+                    URL.createObjectURL(
+                        blob
+                    );
+
+
+                const a =
+                    document.createElement(
+                        'a'
+                    );
+
+
+                a.href = url;
+
+                a.download =
+                    'study_records.csv';
+
+
+                a.click();
+
+
+                URL.revokeObjectURL(url);
+
+            };
+
     </script>
+
 </body>
 </html>
