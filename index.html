@@ -152,7 +152,7 @@
                             </div>
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">選擇科目</label>
-                                <select id="sch-subject" onchange="renderFileButtons()" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
+                                <select id="sch-subject" onchange="window.renderFileButtons()" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none">
                                     <option value="">請選擇科目</option>
                                 </select>
                             </div>
@@ -161,7 +161,7 @@
                         <!-- 檔案直接顯示在上方供點擊選取 -->
                         <div>
                             <label class="text-[11px] text-slate-400 block mb-1">選擇對應檔案 (點擊選取)</label>
-                            <div id="file-selection-container" class="flex flex-wrap gap-1.5 min-h-[32px] p-2 bg-white border border-slate-200 rounded-lg text-xs">
+                            <div id="file-selection-container" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-white border border-slate-200 rounded-lg text-xs items-center">
                                 <span class="text-slate-400 text-xs">請先選擇上方科目以顯示檔案</span>
                             </div>
                             <input type="hidden" id="sch-selected-file" value="">
@@ -222,6 +222,9 @@
         let timerSeconds = 0;
         let activeTimerSession = null;
 
+        // 全域變數供 HTML 內聯調用
+        window.userData = userData;
+
         // 即時更新頂部日期與目前時間
         function updateDateTime() {
             const now = new Date();
@@ -240,7 +243,6 @@
                 displayEl.textContent = `${year}年${month}月${day}日 (週${weekStr}) ${hours}:${mins}:${secs}`;
             }
 
-            // 預設排程日期
             const schDateInput = document.getElementById('sch-date');
             if (schDateInput && !schDateInput.value) {
                 schDateInput.value = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -301,11 +303,13 @@
                 userData = { subjects: [], schedules: [] };
                 await saveUserData();
             }
+            window.userData = userData;
             renderApp();
         }
 
         async function saveUserData() {
             if (!currentUser) return;
+            window.userData = userData;
             const docRef = doc(db, "schedules", currentUser.uid);
             await setDoc(docRef, userData);
         }
@@ -404,7 +408,7 @@
 
             document.getElementById('schedule-form').reset();
             updateDateTime();
-            renderFileButtons();
+            window.renderFileButtons();
             await saveUserData();
             renderApp();
         });
@@ -502,7 +506,7 @@
             
             if(!subjectSelect || !container) return;
             const subId = parseInt(subjectSelect.value);
-            const sub = userData.subjects.find(s => s.id === subId);
+            const sub = window.userData.subjects.find(s => s.id === subId);
 
             hiddenInput.value = '';
             if (!sub || !sub.files || sub.files.length === 0) {
@@ -511,10 +515,18 @@
             }
 
             container.innerHTML = sub.files.map((f, idx) => `
-                <button type="button" onclick="selectFileButton('${f.name}', this)" class="file-btn px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded text-xs transition truncate max-w-[200px]">
+                <button type="button" onclick="selectFileButton('${f.name.replace(/'/g, "\\'")}', this)" class="file-btn px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded text-xs transition truncate max-w-[200px]">
                     📄 ${f.name}
                 </button>
             `).join('');
+
+            // 如果只有一個檔案，預設自動選取
+            if (sub.files.length === 1) {
+                const firstBtn = container.querySelector('.file-btn');
+                if (firstBtn) {
+                    window.selectFileButton(sub.files[0].name, firstBtn);
+                }
+            }
         }
 
         window.selectFileButton = function(fileName, btnEl) {
@@ -529,6 +541,7 @@
         }
 
         function renderApp() {
+            window.userData = userData;
             const totalSub = userData.subjects.length;
             const totalPages = userData.subjects.reduce((sum, s) => sum + s.current, 0);
             const totalTarget = userData.subjects.reduce((sum, s) => sum + s.target, 0);
@@ -553,7 +566,7 @@
                 subjectSelect.innerHTML = `<option value="">請選擇科目</option>` + opts;
                 timerSubSelect.innerHTML = `<option value="">選擇計時科目</option>` + opts;
                 if(currentSubId) subjectSelect.value = currentSubId;
-                renderFileButtons();
+                window.renderFileButtons();
 
                 listEl.innerHTML = userData.subjects.map(s => {
                     const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
