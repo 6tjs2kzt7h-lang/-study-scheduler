@@ -114,7 +114,7 @@
                 <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-5">
                     <div class="flex justify-between items-center">
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-days text-indigo-600"></i> 自訂讀書排程表
+                            <i class="fa-solid fa-calendar-days text-indigo-600"></i> 本週讀書計畫與排程表
                         </h2>
                         <button id="export-csv-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
                             <i class="fa-solid fa-download"></i> 匯出 CSV
@@ -256,12 +256,14 @@
                 if (!userData.subjects) userData.subjects = [];
                 if (!userData.schedules) userData.schedules = [];
             } else {
+                // 預設範例資料，確保初次登入時本週計畫直接看得到
                 userData = {
                     subjects: [
                         { id: 1, name: "範例：微積分", target: 120, current: 40, examDate: "2026-06-15", files: [{ name: "微積分講義.pdf", pages: 120 }] }
                     ],
                     schedules: [
-                        { id: 1, day: "星期一", time: "19:00 - 21:00", subjectId: 1, fileName: "微積分講義.pdf" }
+                        { id: 1, day: "星期一", time: "19:00 - 21:00", subjectId: 1, fileName: "微積分講義.pdf" },
+                        { id: 2, day: "星期三", time: "19:00 - 21:00", subjectId: 1, fileName: "微積分講義.pdf" }
                     ]
                 };
                 await saveUserData();
@@ -352,7 +354,6 @@
 
         window.deleteSubject = async function(id) {
             userData.subjects = userData.subjects.filter(s => s.id !== id);
-            // 同時刪除關聯該科目的排程
             userData.schedules = userData.schedules.filter(sch => sch.subjectId !== id);
             await saveUserData();
             renderApp();
@@ -380,7 +381,7 @@
             });
 
             document.getElementById('schedule-form').reset();
-            updateFileDropdown(); // 重設檔案下拉
+            updateFileDropdown();
             await saveUserData();
             renderApp();
         }
@@ -391,7 +392,6 @@
             renderApp();
         }
 
-        // 當選擇不同科目時，動態更新該科目底下的檔案下拉選單
         window.updateFileDropdown = function() {
             const subjectSelect = document.getElementById('sch-subject');
             const fileSelect = document.getElementById('sch-file');
@@ -439,7 +439,6 @@
                 subjectSelect.innerHTML = `<option value="">請先新增科目</option>`;
                 document.getElementById('sch-file').innerHTML = `<option value="">無特定檔案</option>`;
             } else {
-                // 更新下拉選單
                 const currentSelectedSub = subjectSelect.value;
                 subjectSelect.innerHTML = userData.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
                 if (currentSelectedSub) subjectSelect.value = currentSelectedSub;
@@ -492,10 +491,10 @@
                 }).join('');
             }
 
-            // 渲染右側自訂排程表
+            // 渲染右側排程表
             const tbody = document.getElementById('schedule-table-body');
-            if (userData.schedules.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400 text-xs">目前尚無自訂排程，請從上方表單新增。</td></tr>`;
+            if (!userData.schedules || userData.schedules.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs">目前尚無排程計畫，請透過上方表單新增。</td></tr>`;
             } else {
                 tbody.innerHTML = userData.schedules.map(sch => {
                     const sub = userData.subjects.find(s => s.id === sch.subjectId);
@@ -503,7 +502,7 @@
                     const fileDisplay = sch.fileName ? `<span class="block text-xs text-slate-500 mt-0.5">📄 ${sch.fileName}</span>` : `<span class="block text-xs text-slate-400 mt-0.5">無指定檔案</span>`;
 
                     return `
-                        <tr class="hover:bg-slate-50">
+                        <tr class="hover:bg-slate-50 border-b">
                             <td class="py-3 px-3 font-medium text-slate-700">${sch.day}</td>
                             <td class="py-3 px-3 text-slate-500">${sch.time}</td>
                             <td class="py-3 px-3">
