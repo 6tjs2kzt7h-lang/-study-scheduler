@@ -4,2187 +4,3415 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>極簡雲端讀書計時與頁數追蹤</title>
+    <title>極簡讀書規劃與計時器</title>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- FontAwesome -->
+    <!-- Font Awesome -->
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
 
-    <!-- PDF.js：只在瀏覽器讀取 PDF 頁數，不會上傳 PDF -->
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         "Noto Sans TC", sans-serif;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        }
+
+        .progress-bg {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #111827;
+            border-radius: 999px;
+            transition: width 0.3s;
+        }
+
+        input, select {
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #111827 !important;
+            box-shadow: 0 0 0 2px rgba(17,24,39,0.08);
+        }
+    </style>
 </head>
 
-<body class="bg-slate-100 min-h-screen text-slate-800">
+<body class="bg-gray-50 text-gray-900">
 
-    <!-- 頁首 -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+<!-- ================= HEADER ================= -->
 
-        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+<header class="bg-white border-b">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
-            <h1 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-                <i class="fa-solid fa-book-open text-indigo-600"></i>
+        <div>
+            <h1 class="text-xl font-bold">
+                <i class="fa-solid fa-book-open mr-2"></i>
                 極簡讀書規劃與計時器
             </h1>
 
-            <div class="flex items-center gap-3 text-sm">
-
-                <span
-                    id="current-datetime-display"
-                    class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-mono font-medium"
-                ></span>
-
-                <span
-                    id="user-info"
-                    class="text-slate-600 hidden"
-                ></span>
-
-                <button
-                    id="login-btn"
-                    onclick="loginWithGoogle()"
-                    class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium transition text-xs"
-                >
-                    <i class="fa-brands fa-google"></i>
-                    Google 登入
-                </button>
-
-                <button
-                    id="logout-btn"
-                    onclick="logout()"
-                    class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition text-xs"
-                >
-                    登出
-                </button>
-
+            <div id="current-datetime"
+                 class="text-sm text-gray-500 mt-1">
+                載入中...
             </div>
         </div>
-    </header>
 
+        <div class="flex items-center gap-3">
 
-    <!-- 主容器 -->
-    <main class="max-w-7xl mx-auto px-4 py-6">
+            <span id="user-name"
+                  class="text-sm text-gray-600">
+                尚未登入
+            </span>
 
-        <!-- 未登入提示 -->
-        <div
-            id="login-prompt"
-            class="bg-white border border-slate-200 rounded-2xl p-10 text-center my-12 shadow-sm"
-        >
+            <button id="login-btn"
+                    class="bg-black text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">
+                <i class="fa-brands fa-google mr-1"></i>
+                Google 登入
+            </button>
 
-            <i class="fa-solid fa-lock text-3xl text-indigo-500 mb-3"></i>
-
-            <h2 class="text-xl font-bold text-slate-800 mb-2">
-                請先登入以同步您的讀書紀錄
-            </h2>
-
-            <p class="text-slate-500 text-sm mb-6">
-                登入 Google 帳號後，您的科目與計時資料將安全儲存於雲端。
-            </p>
-
-            <button
-                onclick="loginWithGoogle()"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition inline-flex items-center gap-2 shadow-sm"
-            >
-                <i class="fa-brands fa-google"></i>
-                使用 Google 帳號登入
+            <button id="logout-btn"
+                    class="hidden bg-gray-200 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                登出
             </button>
 
         </div>
+    </div>
+</header>
 
 
-        <!-- 登入後主畫面 -->
-        <div
-            id="app-content"
-            class="hidden space-y-6"
-        >
+<!-- ================= LOGIN MESSAGE ================= -->
 
-            <!-- 統計列 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div id="login-message"
+     class="max-w-7xl mx-auto px-6 py-12 text-center">
 
-                <!-- 計時器 -->
-                <div
-                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between"
-                >
+    <div class="card p-10">
+        <i class="fa-solid fa-cloud text-5xl text-gray-400 mb-5"></i>
 
-                    <div class="flex justify-between items-center mb-2">
+        <h2 class="text-2xl font-bold mb-3">
+            請先登入
+        </h2>
 
-                        <span class="text-xs font-bold text-slate-500">
-                            專注計時器
-                        </span>
+        <p class="text-gray-500">
+            登入 Google 後即可同步你的讀書科目、教材、進度與排程。
+        </p>
+    </div>
 
-                        <span
-                            id="timer-status-badge"
-                            class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium"
-                        >
-                            就緒
-                        </span>
+</div>
 
-                    </div>
 
-                    <div class="text-center my-2">
+<!-- ================= APP ================= -->
 
-                        <div
-                            id="simple-timer-display"
-                            class="text-3xl font-mono font-bold text-slate-800 tracking-wider"
-                        >
-                            00:00:00
-                        </div>
+<main id="app"
+      class="hidden max-w-7xl mx-auto px-6 py-6">
 
-                    </div>
+    <!-- ================= TIMER ================= -->
 
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
+    <section class="card p-6 mb-6">
 
-                        <select
-                            id="timer-subject-select"
-                            class="w-full text-xs px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 outline-none"
-                        >
-                            <option value="">選擇計時科目</option>
-                        </select>
+        <div class="flex flex-col md:flex-row
+                    items-center justify-between gap-6">
 
-                        <div class="flex gap-2">
+            <div>
+                <h2 class="font-bold text-lg mb-2">
+                    <i class="fa-solid fa-stopwatch mr-2"></i>
+                    讀書計時器
+                </h2>
 
-                            <button
-                                id="timer-start-btn"
-                                onclick="startTimer()"
-                                class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-xs font-bold transition"
-                            >
-                                開始計時
-                            </button>
+                <div class="flex items-center gap-3">
 
-                            <button
-                                id="timer-stop-btn"
-                                onclick="stopTimer()"
-                                disabled
-                                class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg text-xs font-bold transition opacity-50 cursor-not-allowed"
-                            >
-                                結束紀錄
-                            </button>
+                    <select id="timer-subject"
+                            class="border rounded-lg px-3 py-2">
+                        <option value="">
+                            請選擇科目
+                        </option>
+                    </select>
 
-                        </div>
+                    <button id="timer-start"
+                            class="bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-800">
+                        開始
+                    </button>
 
-                    </div>
+                    <button id="timer-stop"
+                            class="hidden bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700">
+                        停止
+                    </button>
 
                 </div>
-
-
-                <!-- 總科目數 -->
-                <div
-                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
-                >
-
-                    <div>
-
-                        <p class="text-xs text-slate-400 font-medium">
-                            總科目數
-                        </p>
-
-                        <h3
-                            id="kpi-total-subjects"
-                            class="text-2xl font-bold text-slate-700 mt-1"
-                        >
-                            0
-                        </h3>
-
-                    </div>
-
-                    <div
-                        class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"
-                    >
-                        <i class="fa-solid fa-book"></i>
-                    </div>
-
-                </div>
-
-
-                <!-- 總完成進度 -->
-                <div
-                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
-                >
-
-                    <div>
-
-                        <p class="text-xs text-slate-400 font-medium">
-                            總完成頁數 / 平均
-                        </p>
-
-                        <h3
-                            id="kpi-completed-pages"
-                            class="text-lg font-bold text-emerald-600 mt-1"
-                        >
-                            0 頁
-                            <span id="kpi-avg-progress">
-                                (0%)
-                            </span>
-                        </h3>
-
-                    </div>
-
-                    <div
-                        class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"
-                    >
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-
-                </div>
-
             </div>
 
 
-            <!-- 左右雙欄 -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="text-center">
 
-
-                <!-- 左側 -->
-                <div
-                    class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-                >
-
-                    <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-
-                        <i class="fa-solid fa-plus text-indigo-600"></i>
-
-                        新增讀書科目
-
-                    </h2>
-
-
-                    <!-- 新增科目 -->
-                    <form
-                        id="subject-form"
-                        class="space-y-3"
-                    >
-
-                        <!-- 科目名稱 -->
-                        <div>
-
-                            <label class="text-[11px] text-slate-400 block mb-1">
-                                科目名稱
-                            </label>
-
-                            <input
-                                type="text"
-                                id="sub-name"
-                                placeholder="例如：工程數學"
-                                required
-                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"
-                            >
-
-                        </div>
-
-
-                        <!-- PDF -->
-                        <div>
-
-                            <label class="text-[11px] text-slate-400 block mb-1">
-                                上傳 PDF
-                            </label>
-
-                            <input
-                                type="file"
-                                id="sub-file"
-                                accept=".pdf,application/pdf"
-                                class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white"
-                            >
-
-                            <p
-                                id="pdf-info"
-                                class="text-[11px] text-slate-400 mt-1"
-                            >
-                                PDF 只會在本機分析頁數，不會上傳或儲存。
-                            </p>
-
-                        </div>
-
-
-                        <!-- 頁數 + 考試日期 -->
-                        <div class="flex gap-2">
-
-                            <div class="w-1/2">
-
-                                <label class="text-[11px] text-slate-400 block mb-1">
-                                    總頁數
-                                </label>
-
-                                <input
-                                    type="number"
-                                    id="sub-target"
-                                    placeholder="PDF 自動取得"
-                                    min="1"
-                                    required
-                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"
-                                >
-
-                            </div>
-
-
-                            <div class="w-1/2">
-
-                                <label class="text-[11px] text-slate-400 block mb-1">
-                                    考試日期
-                                </label>
-
-                                <input
-                                    type="date"
-                                    id="sub-exam-date"
-                                    class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"
-                                >
-
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            type="submit"
-                            class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-xl text-xs font-medium transition"
-                        >
-                            建立科目
-                        </button>
-
-                    </form>
-
-
-                    <hr class="border-slate-100">
-
-
-                    <h3 class="text-xs font-bold text-slate-700">
-                        現有科目與頁數追蹤
-                    </h3>
-
-
-                    <div
-                        id="subject-list"
-                        class="space-y-3 max-h-[350px] overflow-y-auto pr-1"
-                    >
-                    </div>
-
+                <div id="timer-display"
+                     class="text-5xl font-mono font-bold">
+                    00:00:00
                 </div>
 
-
-                <!-- 右側 -->
-                <div
-                    class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-                >
-
-                    <div class="flex justify-between items-center">
-
-                        <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
-
-                            <i class="fa-solid fa-calendar-days text-indigo-600"></i>
-
-                            排程與讀書進度紀錄
-
-                        </h2>
-
-                        <button
-                            onclick="exportCSV()"
-                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1"
-                        >
-                            <i class="fa-solid fa-download"></i>
-                            匯出 CSV
-                        </button>
-
-                    </div>
-
-
-                    <!-- 新增排程 -->
-                    <form
-                        id="schedule-form"
-                        class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3"
-                    >
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-
-                            <div>
-
-                                <label class="text-[11px] text-slate-400 block mb-1">
-                                    日期
-                                </label>
-
-                                <input
-                                    type="date"
-                                    id="sch-date"
-                                    required
-                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none"
-                                >
-
-                            </div>
-
-
-                            <div>
-
-                                <label class="text-[11px] text-slate-400 block mb-1">
-                                    時段
-                                </label>
-
-                                <input
-                                    type="text"
-                                    id="sch-time"
-                                    placeholder="例如: 14:00-16:00"
-                                    required
-                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none"
-                                >
-
-                            </div>
-
-
-                            <div>
-
-                                <label class="text-[11px] text-slate-400 block mb-1">
-                                    選擇科目
-                                </label>
-
-                                <select
-                                    id="sch-subject"
-                                    class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none"
-                                >
-                                    <option value="">
-                                        請選擇科目
-                                    </option>
-                                </select>
-
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            type="submit"
-                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1"
-                        >
-                            <i class="fa-solid fa-plus"></i>
-                            新增排程紀錄
-                        </button>
-
-                    </form>
-
-
-                    <!-- 表格 -->
-                    <div class="overflow-x-auto">
-
-                        <table class="w-full text-left border-collapse">
-
-                            <thead>
-
-                                <tr class="border-b text-[11px] text-slate-400 uppercase">
-
-                                    <th class="py-2 px-2">
-                                        日期 / 時段
-                                    </th>
-
-                                    <th class="py-2 px-2">
-                                        科目
-                                    </th>
-
-                                    <th class="py-2 px-2">
-                                        計時與讀書範圍
-                                    </th>
-
-                                    <th class="py-2 px-2 text-right">
-                                        操作
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody
-                                id="schedule-table-body"
-                                class="text-xs divide-y divide-slate-100"
-                            >
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
+                <div id="timer-status"
+                     class="text-sm text-gray-500 mt-1">
+                    尚未開始
                 </div>
 
             </div>
 
         </div>
 
-    </main>
+    </section>
 
 
-    <!-- Firebase -->
-    <script type="module">
+    <!-- ================= KPI ================= -->
 
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
-        import {
-            getAuth,
-            GoogleAuthProvider,
-            signInWithPopup,
-            signOut,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        <div class="card p-5">
+            <div class="text-sm text-gray-500">
+                科目數
+            </div>
 
-        import {
-            getFirestore,
-            doc,
-            getDoc,
-            setDoc
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+            <div id="kpi-total-subjects"
+                 class="text-3xl font-bold mt-2">
+                0
+            </div>
+        </div>
 
 
-        // Firebase 設定
-        const firebaseConfig = {
+        <div class="card p-5">
 
-            apiKey: "AIzaSyDBv8wQy6iQdyp3TBDXzv5ZPJWsT3PYIXk",
+            <div class="text-sm text-gray-500">
+                已讀頁數
+            </div>
 
-            authDomain: "study-scheduler-21d31.firebaseapp.com",
+            <div class="text-3xl font-bold mt-2">
+                <span id="kpi-completed-pages-number">0</span>
+                <span class="text-lg">頁</span>
+            </div>
 
-            projectId: "study-scheduler-21d31",
-
-            storageBucket: "study-scheduler-21d31.firebasestorage.app",
-
-            messagingSenderId: "397621309129",
-
-            appId: "1:397621309129:web:8c2893f7bac4429ff7e718",
-
-            measurementId: "G-LSC7WV46Y9"
-
-        };
+        </div>
 
 
-        const app = initializeApp(firebaseConfig);
+        <div class="card p-5">
 
-        const auth = getAuth(app);
+            <div class="text-sm text-gray-500">
+                整體平均進度
+            </div>
 
-        auth.useDeviceLanguage();
+            <div id="kpi-avg-progress"
+                 class="text-3xl font-bold mt-2">
+                0%
+            </div>
 
-        const db = getFirestore(app);
+        </div>
 
-        const provider = new GoogleAuthProvider();
-
-
-        let currentUser = null;
-
-        let userData = {
-            subjects: [],
-            schedules: []
-        };
+    </section>
 
 
-        let timerInterval = null;
+    <!-- ================= MAIN GRID ================= -->
 
-        let timerSeconds = 0;
-
-        let activeTimerSession = null;
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
 
-        window.userData = userData;
+        <!-- ================= LEFT ================= -->
+
+        <div class="space-y-6">
 
 
-        // ==============================
-        // 日期時間
-        // ==============================
+            <!-- 新增科目 -->
 
-        function updateDateTime() {
+            <section class="card p-6">
 
-            const now = new Date();
+                <h2 class="font-bold text-lg mb-5">
+                    <i class="fa-solid fa-plus mr-2"></i>
+                    新增讀書科目
+                </h2>
 
-            const year = now.getFullYear();
 
-            const month = now.getMonth() + 1;
+                <form id="subject-form"
+                      class="space-y-4">
 
-            const day = now.getDate();
+                    <!-- 科目 -->
 
-            const weekdays = [
-                '日',
-                '一',
-                '二',
-                '三',
-                '四',
-                '五',
-                '六'
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            科目名稱
+                        </label>
+
+                        <input
+                            id="sub-name"
+                            type="text"
+                            placeholder="例如：工程數學"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- 考試日期 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            考試日期
+                        </label>
+
+                        <input
+                            id="sub-exam-date"
+                            type="date"
+                            class="w-full border rounded-lg px-3 py-2"
+                        >
+
+                    </div>
+
+
+                    <!-- PDF -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            讀書教材 PDF
+                        </label>
+
+                        <input
+                            id="material-files"
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            multiple
+                            class="w-full border rounded-lg px-3 py-2 bg-white"
+                        >
+
+                        <p class="text-xs text-gray-500 mt-2">
+                            可以一次選擇多份 PDF。
+                            PDF 只會在你的瀏覽器分析頁數，不會上傳到 Firebase。
+                        </p>
+
+                    </div>
+
+
+                    <!-- PDF 分析結果 -->
+
+                    <div id="material-preview"
+                         class="space-y-2">
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
+
+                        <i class="fa-solid fa-plus mr-2"></i>
+                        建立科目
+
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- ================= SUBJECT LIST ================= -->
+
+            <section class="card p-6">
+
+                <div class="flex items-center justify-between mb-5">
+
+                    <h2 class="font-bold text-lg">
+                        <i class="fa-solid fa-layer-group mr-2"></i>
+                        我的科目
+                    </h2>
+
+                </div>
+
+                <div id="subject-list"
+                     class="space-y-4">
+
+                    <div class="text-center text-gray-400 py-8">
+                        尚未建立科目
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- ================= RIGHT ================= -->
+
+        <div class="space-y-6">
+
+
+            <!-- ================= 排程 ================= -->
+
+            <section class="card p-6">
+
+                <h2 class="font-bold text-lg mb-5">
+                    <i class="fa-solid fa-calendar-check mr-2"></i>
+                    排程與讀書進度
+                </h2>
+
+
+                <form id="schedule-form"
+                      class="space-y-4">
+
+
+                    <!-- 日期 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            日期
+                        </label>
+
+                        <input
+                            id="schedule-date"
+                            type="date"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- 時間 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            時間
+                        </label>
+
+                        <input
+                            id="schedule-time"
+                            type="time"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- 科目 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            科目
+                        </label>
+
+                        <select
+                            id="schedule-subject"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required>
+
+                            <option value="">
+                                請選擇科目
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- 教材 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            教材
+                        </label>
+
+                        <select
+                            id="schedule-material"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required>
+
+                            <option value="">
+                                請先選擇科目
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- 教材資訊 -->
+
+                    <div id="reading-info"
+                         class="hidden bg-gray-100 rounded-lg p-3 text-sm">
+                    </div>
+
+
+                    <!-- 開始頁 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            開始頁
+                        </label>
+
+                        <input
+                            id="start-page"
+                            type="number"
+                            min="1"
+                            placeholder="例如：20"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- 結束頁 -->
+
+                    <div>
+
+                        <label class="block text-sm font-medium mb-1">
+                            結束頁
+                        </label>
+
+                        <input
+                            id="end-page"
+                            type="number"
+                            min="1"
+                            placeholder="例如：35"
+                            class="w-full border rounded-lg px-3 py-2"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- 本次閱讀 -->
+
+                    <div id="reading-count"
+                         class="hidden bg-black text-white rounded-lg p-4">
+
+                        <div class="text-sm opacity-70">
+                            本次閱讀
+                        </div>
+
+                        <div id="reading-count-number"
+                             class="text-2xl font-bold">
+                            0 頁
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
+
+                        <i class="fa-solid fa-check mr-2"></i>
+                        儲存讀書紀錄
+
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- ================= HISTORY ================= -->
+
+            <section class="card p-6">
+
+                <div class="flex items-center justify-between mb-5">
+
+                    <h2 class="font-bold text-lg">
+                        <i class="fa-solid fa-clock-rotate-left mr-2"></i>
+                        讀書紀錄
+                    </h2>
+
+                    <button
+                        id="export-csv"
+                        class="bg-gray-100 px-3 py-2 rounded-lg text-sm hover:bg-gray-200">
+
+                        <i class="fa-solid fa-download mr-1"></i>
+                        CSV
+
+                    </button>
+
+                </div>
+
+
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-sm">
+
+                        <thead>
+
+                            <tr class="border-b text-left">
+
+                                <th class="py-3 pr-4">
+                                    日期
+                                </th>
+
+                                <th class="py-3 pr-4">
+                                    科目
+                                </th>
+
+                                <th class="py-3 pr-4">
+                                    教材
+                                </th>
+
+                                <th class="py-3 pr-4">
+                                    閱讀範圍
+                                </th>
+
+                                <th class="py-3 pr-4">
+                                    頁數
+                                </th>
+
+                                <th class="py-3">
+                                    操作
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="schedule-list">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+const firebaseConfig = {
+
+    apiKey: "請填入你的 Firebase API KEY",
+
+    authDomain: "study-scheduler-21d31.firebaseapp.com",
+
+    projectId: "study-scheduler-21d31",
+
+    storageBucket: "study-scheduler-21d31.firebasestorage.app",
+
+    messagingSenderId: "397621309129",
+
+    appId: "1:397621309129:web:8c2893f7bac4429ff7e718",
+
+    measurementId: "G-LSC7WV46Y9"
+
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+const provider = new GoogleAuthProvider();
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let currentUser = null;
+
+let userData = {
+
+    subjects: [],
+
+    schedules: []
+
+};
+
+let pendingMaterials = [];
+
+
+/* =========================================================
+   ID
+========================================================= */
+
+function makeId() {
+
+    return Date.now() +
+        Math.floor(Math.random() * 1000000);
+
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   日期時間
+========================================================= */
+
+function updateDateTime() {
+
+    const now = new Date();
+
+    const text = now.toLocaleString(
+        "zh-TW",
+        {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            weekday: "long",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        }
+    );
+
+    document.getElementById(
+        "current-datetime"
+    ).textContent = text;
+
+}
+
+setInterval(updateDateTime, 1000);
+
+updateDateTime();
+
+
+/* =========================================================
+   NORMALIZE 舊資料
+========================================================= */
+
+function normalizeUserData(data) {
+
+    const result = {
+
+        subjects: Array.isArray(data?.subjects)
+            ? data.subjects
+            : [],
+
+        schedules: Array.isArray(data?.schedules)
+            ? data.schedules
+            : []
+
+    };
+
+
+    result.subjects = result.subjects.map(subject => {
+
+        /*
+         * 舊版本只有：
+         * target
+         * current
+         * fileName
+         *
+         * 自動轉成新的 materials
+         */
+
+        if (
+            !Array.isArray(subject.materials) ||
+            subject.materials.length === 0
+        ) {
+
+            subject.materials = [
+
+                {
+
+                    id: makeId(),
+
+                    fileName:
+                        subject.fileName ||
+                        "教材",
+
+                    target:
+                        Number(subject.target) || 0,
+
+                    current:
+                        Number(subject.current) || 0
+
+                }
+
             ];
 
-            const weekStr = weekdays[now.getDay()];
-
-            const hours = String(now.getHours()).padStart(2, '0');
-
-            const mins = String(now.getMinutes()).padStart(2, '0');
-
-            const secs = String(now.getSeconds()).padStart(2, '0');
+        }
 
 
-            const displayEl =
-                document.getElementById(
-                    'current-datetime-display'
+        subject.materials =
+            subject.materials.map(material => ({
+
+                id:
+                    material.id ??
+                    makeId(),
+
+                fileName:
+                    material.fileName ||
+                    "教材",
+
+                target:
+                    Number(material.target) || 0,
+
+                current:
+                    Math.min(
+                        Number(material.current) || 0,
+                        Number(material.target) || 0
+                    )
+
+            }));
+
+
+        return subject;
+
+    });
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   FIRESTORE 儲存
+========================================================= */
+
+async function saveUserData() {
+
+    if (!currentUser) {
+
+        return false;
+
+    }
+
+
+    try {
+
+        const docRef = doc(
+            db,
+            "schedules",
+            currentUser.uid
+        );
+
+
+        await setDoc(
+            docRef,
+            {
+
+                subjects:
+                    userData.subjects || [],
+
+                schedules:
+                    userData.schedules || []
+
+            }
+        );
+
+
+        return true;
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "儲存失敗：\n" +
+            error.message
+        );
+
+        return false;
+
+    }
+
+}
+
+
+/* =========================================================
+   FIRESTORE 載入
+========================================================= */
+
+async function loadUserData() {
+
+    if (!currentUser) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const docRef = doc(
+            db,
+            "schedules",
+            currentUser.uid
+        );
+
+        const snapshot =
+            await getDoc(docRef);
+
+
+        if (snapshot.exists()) {
+
+            userData =
+                normalizeUserData(
+                    snapshot.data()
                 );
 
-            if (displayEl) {
+        } else {
 
-                displayEl.textContent =
-                    `${year}年${month}月${day}日 (週${weekStr}) ${hours}:${mins}:${secs}`;
+            userData = {
+
+                subjects: [],
+
+                schedules: []
+
+            };
+
+        }
+
+
+        renderApp();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "載入資料失敗：\n" +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+document
+    .getElementById("login-btn")
+    .addEventListener(
+        "click",
+        async () => {
+
+            try {
+
+                await signInWithPopup(
+                    auth,
+                    provider
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "登入失敗：\n" +
+                    error.message
+                );
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+document
+    .getElementById("logout-btn")
+    .addEventListener(
+        "click",
+        async () => {
+
+            await signOut(auth);
+
+        }
+    );
+
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    async user => {
+
+        currentUser = user;
+
+
+        if (user) {
+
+            document
+                .getElementById("login-message")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("app")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("login-btn")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("logout-btn")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("user-name")
+                .textContent =
+                user.displayName ||
+                user.email ||
+                "已登入";
+
+
+            await loadUserData();
+
+
+        } else {
+
+            document
+                .getElementById("login-message")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("app")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("login-btn")
+                .classList.remove("hidden");
+
+
+            document
+                .getElementById("logout-btn")
+                .classList.add("hidden");
+
+
+            document
+                .getElementById("user-name")
+                .textContent =
+                "尚未登入";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   PDF 選擇
+========================================================= */
+
+const materialFiles =
+    document.getElementById(
+        "material-files"
+    );
+
+
+materialFiles.addEventListener(
+    "change",
+    async event => {
+
+        const files =
+            Array.from(
+                event.target.files || []
+            );
+
+
+        pendingMaterials = [];
+
+        renderPendingMaterials();
+
+
+        if (files.length === 0) {
+
+            return;
+
+        }
+
+
+        const preview =
+            document.getElementById(
+                "material-preview"
+            );
+
+
+        preview.innerHTML = `
+
+            <div class="bg-gray-100
+                        rounded-lg
+                        p-3
+                        text-sm">
+
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+
+                正在分析 ${files.length} 份 PDF...
+
+            </div>
+
+        `;
+
+
+        for (
+            let i = 0;
+            i < files.length;
+            i++
+        ) {
+
+            const file = files[i];
+
+
+            if (
+                file.type !== "application/pdf" &&
+                !file.name
+                    .toLowerCase()
+                    .endsWith(".pdf")
+            ) {
+
+                alert(
+                    `${file.name} 不是 PDF 檔案`
+                );
+
+                continue;
 
             }
 
 
-            const schDateInput =
-                document.getElementById('sch-date');
+            try {
 
-            if (
-                schDateInput &&
-                !schDateInput.value
-            ) {
+                const arrayBuffer =
+                    await file.arrayBuffer();
 
-                schDateInput.value =
-                    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                const pdf =
+                    await pdfjsLib
+                        .getDocument({
+                            data: arrayBuffer
+                        })
+                        .promise;
+
+
+                const pageCount =
+                    pdf.numPages;
+
+
+                pendingMaterials.push({
+
+                    id: makeId(),
+
+                    fileName: file.name,
+
+                    target: pageCount,
+
+                    current: 0
+
+                });
+
+
+                if (pdf.destroy) {
+
+                    await pdf.destroy();
+
+                }
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    `無法讀取：${file.name}\n\n` +
+                    "請確認 PDF 檔案是否正常。"
+                );
 
             }
 
         }
 
 
-        setInterval(updateDateTime, 1000);
+        renderPendingMaterials();
 
-        updateDateTime();
-
-
-        // ==============================
-        // PDF 頁數分析
-        // ==============================
-
-        const pdfFileInput =
-            document.getElementById('sub-file');
-
-        const pdfInfo =
-            document.getElementById('pdf-info');
-
-        const subTargetInput =
-            document.getElementById('sub-target');
+    }
+);
 
 
-        pdfFileInput.addEventListener(
-            'change',
-            async function () {
+/* =========================================================
+   顯示待建立教材
+========================================================= */
 
-                const file = this.files[0];
+function renderPendingMaterials() {
 
-
-                if (!file) {
-
-                    pdfInfo.textContent =
-                        "尚未選擇 PDF";
-
-                    return;
-
-                }
-
-
-                if (
-                    file.type !== "application/pdf" &&
-                    !file.name.toLowerCase().endsWith(".pdf")
-                ) {
-
-                    alert("請選擇 PDF 檔案！");
-
-                    this.value = "";
-
-                    return;
-
-                }
-
-
-                pdfInfo.textContent =
-                    "⏳ 正在分析 PDF 頁數...";
-
-
-                try {
-
-                    // 只在瀏覽器記憶體讀取
-                    const arrayBuffer =
-                        await file.arrayBuffer();
-
-
-                    const pdf =
-                        await pdfjsLib.getDocument({
-                            data: arrayBuffer
-                        }).promise;
-
-
-                    const pageCount =
-                        pdf.numPages;
-
-
-                    // 自動填入總頁數
-                    subTargetInput.value =
-                        pageCount;
-
-
-                    pdfInfo.textContent =
-                        `📄 ${file.name}｜共 ${pageCount} 頁`;
-
-
-                    console.log(
-                        "PDF 頁數：",
-                        pageCount
-                    );
-
-
-                } catch (error) {
-
-                    console.error(
-                        "PDF 分析失敗：",
-                        error
-                    );
-
-
-                    pdfInfo.textContent =
-                        "❌ PDF 分析失敗";
-
-
-                    alert(
-                        "無法讀取這個 PDF。\n請確認 PDF 檔案是否正常。"
-                    );
-
-                }
-
-            }
+    const container =
+        document.getElementById(
+            "material-preview"
         );
 
 
-        // ==============================
-        // Firebase 登入狀態
-        // ==============================
+    if (
+        pendingMaterials.length === 0
+    ) {
 
-        onAuthStateChanged(
-            auth,
-            async (user) => {
+        container.innerHTML = "";
 
-                const loginPrompt =
-                    document.getElementById(
-                        'login-prompt'
-                    );
+        return;
 
-                const appContent =
-                    document.getElementById(
-                        'app-content'
-                    );
-
-                const loginBtn =
-                    document.getElementById(
-                        'login-btn'
-                    );
-
-                const logoutBtn =
-                    document.getElementById(
-                        'logout-btn'
-                    );
-
-                const userInfo =
-                    document.getElementById(
-                        'user-info'
-                    );
+    }
 
 
-                if (user) {
+    container.innerHTML = `
 
-                    currentUser = user;
+        <div class="text-sm
+                    font-medium
+                    mb-2">
+
+            已選擇教材
+
+        </div>
+
+        ${
+            pendingMaterials
+                .map(
+                    (material, index) => `
+
+                    <div class="flex
+                                items-center
+                                justify-between
+                                border
+                                rounded-lg
+                                p-3
+                                bg-gray-50">
+
+                        <div class="min-w-0">
+
+                            <div class="font-medium truncate">
+
+                                <i class="fa-solid fa-file-pdf mr-2"></i>
+
+                                ${escapeHtml(
+                                    material.fileName
+                                )}
+
+                            </div>
+
+                            <div class="text-xs
+                                        text-gray-500
+                                        mt-1">
+
+                                共 ${material.target} 頁
+
+                            </div>
+
+                        </div>
 
 
-                    loginPrompt.classList.add(
-                        'hidden'
-                    );
+                        <button
+                            type="button"
+                            onclick="removePendingMaterial(${index})"
+                            class="text-red-500
+                                   hover:text-red-700
+                                   ml-3">
 
-                    appContent.classList.remove(
-                        'hidden'
-                    );
+                            <i class="fa-solid fa-trash"></i>
 
-                    loginBtn.classList.add(
-                        'hidden'
-                    );
+                        </button>
 
-                    logoutBtn.classList.remove(
-                        'hidden'
-                    );
+                    </div>
 
+                `
+                )
+                .join("")
+        }
 
-                    userInfo.textContent =
-                        `Hi, ${user.displayName || user.email}`;
+    `;
 
-                    userInfo.classList.remove(
-                        'hidden'
-                    );
+}
 
 
-                    await loadUserData();
+window.removePendingMaterial =
+    function(index) {
 
-
-                } else {
-
-                    currentUser = null;
-
-
-                    loginPrompt.classList.remove(
-                        'hidden'
-                    );
-
-                    appContent.classList.add(
-                        'hidden'
-                    );
-
-                    loginBtn.classList.remove(
-                        'hidden'
-                    );
-
-                    logoutBtn.classList.add(
-                        'hidden'
-                    );
-
-                    userInfo.classList.add(
-                        'hidden'
-                    );
-
-                }
-
-            }
+        pendingMaterials.splice(
+            index,
+            1
         );
 
+        renderPendingMaterials();
 
-        // ==============================
-        // Google 登入
-        // ==============================
+    };
 
-        window.loginWithGoogle =
-            async function () {
 
-                try {
+/* =========================================================
+   建立科目
+========================================================= */
 
-                    await signInWithPopup(
-                        auth,
-                        provider
-                    );
+document
+    .getElementById("subject-form")
+    .addEventListener(
+        "submit",
+        async event => {
 
-                } catch (error) {
+            event.preventDefault();
 
-                    console.error(
-                        "登入失敗",
-                        error
-                    );
 
-                    alert(
-                        "登入失敗：" +
-                        error.message
-                    );
+            const name =
+                document
+                    .getElementById("sub-name")
+                    .value
+                    .trim();
 
-                }
+
+            const examDate =
+                document
+                    .getElementById("sub-exam-date")
+                    .value;
+
+
+            if (!name) {
+
+                alert("請輸入科目名稱");
+
+                return;
+
+            }
+
+
+            if (
+                pendingMaterials.length === 0
+            ) {
+
+                alert(
+                    "請至少選擇一份 PDF 教材"
+                );
+
+                return;
+
+            }
+
+
+            const subject = {
+
+                id: makeId(),
+
+                name,
+
+                examDate,
+
+                materials:
+                    pendingMaterials.map(
+                        material => ({
+
+                            id: material.id,
+
+                            fileName:
+                                material.fileName,
+
+                            target:
+                                material.target,
+
+                            current: 0
+
+                        })
+                    )
 
             };
 
 
-        // ==============================
-        // 登出
-        // ==============================
-
-        window.logout =
-            async function () {
-
-                await signOut(auth);
-
-            };
+            userData.subjects.push(
+                subject
+            );
 
 
-        // ==============================
-        // 讀取 Firebase 資料
-        // ==============================
-
-        async function loadUserData() {
-
-            if (!currentUser) return;
+            const saved =
+                await saveUserData();
 
 
-            try {
+            if (!saved) {
 
-                const docRef =
-                    doc(
-                        db,
-                        "schedules",
-                        currentUser.uid
-                    );
+                userData.subjects.pop();
 
+                return;
 
-                const docSnap =
-                    await getDoc(docRef);
+            }
 
 
-                if (docSnap.exists()) {
-
-                    userData =
-                        docSnap.data();
-
-
-                    if (!userData.subjects) {
-
-                        userData.subjects = [];
-
-                    }
+            document
+                .getElementById("subject-form")
+                .reset();
 
 
-                    if (!userData.schedules) {
+            pendingMaterials = [];
 
-                        userData.schedules = [];
+            renderPendingMaterials();
 
-                    }
-
-
-                } else {
-
-                    userData = {
-                        subjects: [],
-                        schedules: []
-                    };
+            renderApp();
 
 
-                    await saveUserData();
+            alert(
+                "科目建立成功！"
+            );
 
-                }
+        }
+    );
 
 
-            } catch (e) {
+/* =========================================================
+   刪除科目
+========================================================= */
 
-                console.error(
-                    "載入資料錯誤",
-                    e
+window.deleteSubject =
+    async function(subjectId) {
+
+        const subject =
+            userData.subjects.find(
+                s => s.id == subjectId
+            );
+
+
+        if (!subject) {
+
+            return;
+
+        }
+
+
+        if (
+            !confirm(
+                `確定要刪除「${subject.name}」嗎？\n\n` +
+                "該科目的教材與讀書紀錄也會被刪除。"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const oldSubjects =
+            [...userData.subjects];
+
+
+        const oldSchedules =
+            [...userData.schedules];
+
+
+        userData.subjects =
+            userData.subjects.filter(
+                s => s.id != subjectId
+            );
+
+
+        userData.schedules =
+            userData.schedules.filter(
+                s => s.subjectId != subjectId
+            );
+
+
+        const saved =
+            await saveUserData();
+
+
+        if (!saved) {
+
+            userData.subjects =
+                oldSubjects;
+
+            userData.schedules =
+                oldSchedules;
+
+            return;
+
+        }
+
+
+        renderApp();
+
+    };
+
+
+/* =========================================================
+   刪除教材
+========================================================= */
+
+window.deleteMaterial =
+    async function(
+        subjectId,
+        materialId
+    ) {
+
+        const subject =
+            userData.subjects.find(
+                s => s.id == subjectId
+            );
+
+
+        if (!subject) {
+
+            return;
+
+        }
+
+
+        if (
+            subject.materials.length <= 1
+        ) {
+
+            alert(
+                "一個科目至少要保留一份教材。\n" +
+                "如果不需要這個科目，可以直接刪除科目。"
+            );
+
+            return;
+
+        }
+
+
+        const material =
+            subject.materials.find(
+                m => m.id == materialId
+            );
+
+
+        if (!material) {
+
+            return;
+
+        }
+
+
+        if (
+            !confirm(
+                `確定要刪除「${material.fileName}」嗎？`
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        subject.materials =
+            subject.materials.filter(
+                m => m.id != materialId
+            );
+
+
+        await saveUserData();
+
+        renderApp();
+
+    };
+
+
+/* =========================================================
+   手動修改教材進度
+========================================================= */
+
+window.updateMaterialProgress =
+    async function(
+        subjectId,
+        materialId,
+        value
+    ) {
+
+        const subject =
+            userData.subjects.find(
+                s => s.id == subjectId
+            );
+
+
+        if (!subject) {
+
+            return;
+
+        }
+
+
+        const material =
+            subject.materials.find(
+                m => m.id == materialId
+            );
+
+
+        if (!material) {
+
+            return;
+
+        }
+
+
+        let current =
+            Number(value);
+
+
+        if (
+            !Number.isFinite(current)
+        ) {
+
+            current = 0;
+
+        }
+
+
+        current =
+            Math.max(
+                0,
+                Math.min(
+                    current,
+                    material.target
+                )
+            );
+
+
+        material.current =
+            current;
+
+
+        await saveUserData();
+
+        renderApp();
+
+    };
+
+
+/* =========================================================
+   排程科目變更
+========================================================= */
+
+document
+    .getElementById("schedule-subject")
+    .addEventListener(
+        "change",
+        () => {
+
+            updateScheduleMaterialOptions();
+
+        }
+    );
+
+
+/* =========================================================
+   排程教材選擇
+========================================================= */
+
+document
+    .getElementById("schedule-material")
+    .addEventListener(
+        "change",
+        () => {
+
+            updateReadingInfo();
+
+        }
+    );
+
+
+/* =========================================================
+   更新教材選項
+========================================================= */
+
+function updateScheduleMaterialOptions(
+    keepValue = ""
+) {
+
+    const subjectId =
+        document
+            .getElementById("schedule-subject")
+            .value;
+
+
+    const materialSelect =
+        document.getElementById(
+            "schedule-material"
+        );
+
+
+    materialSelect.innerHTML = "";
+
+
+    if (!subjectId) {
+
+        materialSelect.innerHTML = `
+
+            <option value="">
+                請先選擇科目
+            </option>
+
+        `;
+
+        updateReadingInfo();
+
+        return;
+
+    }
+
+
+    const subject =
+        userData.subjects.find(
+            s => s.id == subjectId
+        );
+
+
+    if (
+        !subject ||
+        !subject.materials ||
+        subject.materials.length === 0
+    ) {
+
+        materialSelect.innerHTML = `
+
+            <option value="">
+                此科目沒有教材
+            </option>
+
+        `;
+
+        updateReadingInfo();
+
+        return;
+
+    }
+
+
+    materialSelect.innerHTML = `
+
+        <option value="">
+            請選擇教材
+        </option>
+
+    `;
+
+
+    subject.materials.forEach(
+        material => {
+
+            const option =
+                document.createElement(
+                    "option"
                 );
 
 
-                userData = {
-                    subjects: [],
-                    schedules: []
-                };
+            option.value =
+                material.id;
+
+
+            option.textContent =
+                `${material.fileName} (${material.current}/${material.target}頁)`;
+
+
+            materialSelect.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (keepValue) {
+
+        const exists =
+            Array.from(
+                materialSelect.options
+            ).some(
+                option =>
+                    String(option.value) ===
+                    String(keepValue)
+            );
+
+
+        if (exists) {
+
+            materialSelect.value =
+                keepValue;
+
+        }
+
+    }
+
+
+    updateReadingInfo();
+
+}
+
+
+/* =========================================================
+   閱讀資訊
+========================================================= */
+
+function getSelectedMaterial() {
+
+    const subjectId =
+        document
+            .getElementById("schedule-subject")
+            .value;
+
+
+    const materialId =
+        document
+            .getElementById("schedule-material")
+            .value;
+
+
+    const subject =
+        userData.subjects.find(
+            s => s.id == subjectId
+        );
+
+
+    if (!subject) {
+
+        return null;
+
+    }
+
+
+    return subject.materials.find(
+        m => m.id == materialId
+    ) || null;
+
+}
+
+
+function updateReadingInfo() {
+
+    const info =
+        document.getElementById(
+            "reading-info"
+        );
+
+
+    const material =
+        getSelectedMaterial();
+
+
+    if (!material) {
+
+        info.classList.add("hidden");
+
+        info.innerHTML = "";
+
+        return;
+
+    }
+
+
+    const remaining =
+        Math.max(
+            0,
+            material.target -
+            material.current
+        );
+
+
+    const percent =
+        material.target > 0
+            ? Math.round(
+                material.current /
+                material.target *
+                100
+              )
+            : 0;
+
+
+    info.classList.remove(
+        "hidden"
+    );
+
+
+    info.innerHTML = `
+
+        <div class="font-medium mb-1">
+
+            📄 ${escapeHtml(
+                material.fileName
+            )}
+
+        </div>
+
+        <div class="text-gray-600">
+
+            已讀：
+            <b>${material.current}</b>
+            /
+            ${material.target} 頁
+
+            <span class="mx-2">｜</span>
+
+            剩餘：
+            <b>${remaining}</b>
+            頁
+
+            <span class="mx-2">｜</span>
+
+            進度：
+            <b>${percent}%</b>
+
+        </div>
+
+    `;
+
+
+    calculateReadingPages();
+
+}
+
+
+/* =========================================================
+   計算本次閱讀頁數
+========================================================= */
+
+document
+    .getElementById("start-page")
+    .addEventListener(
+        "input",
+        calculateReadingPages
+    );
+
+
+document
+    .getElementById("end-page")
+    .addEventListener(
+        "input",
+        calculateReadingPages
+    );
+
+
+function calculateReadingPages() {
+
+    const start =
+        Number(
+            document
+                .getElementById("start-page")
+                .value
+        );
+
+
+    const end =
+        Number(
+            document
+                .getElementById("end-page")
+                .value
+        );
+
+
+    const box =
+        document.getElementById(
+            "reading-count"
+        );
+
+
+    const number =
+        document.getElementById(
+            "reading-count-number"
+        );
+
+
+    if (
+        start >= 1 &&
+        end >= start
+    ) {
+
+        const pages =
+            end - start + 1;
+
+
+        box.classList.remove(
+            "hidden"
+        );
+
+
+        number.textContent =
+            `${pages} 頁`;
+
+    } else {
+
+        box.classList.add(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   新增讀書紀錄
+========================================================= */
+
+document
+    .getElementById("schedule-form")
+    .addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            const date =
+                document
+                    .getElementById("schedule-date")
+                    .value;
+
+
+            const time =
+                document
+                    .getElementById("schedule-time")
+                    .value;
+
+
+            const subjectId =
+                document
+                    .getElementById("schedule-subject")
+                    .value;
+
+
+            const materialId =
+                document
+                    .getElementById("schedule-material")
+                    .value;
+
+
+            const startPage =
+                Number(
+                    document
+                        .getElementById("start-page")
+                        .value
+                );
+
+
+            const endPage =
+                Number(
+                    document
+                        .getElementById("end-page")
+                        .value
+                );
+
+
+            if (!subjectId) {
+
+                alert("請選擇科目");
+
+                return;
 
             }
 
 
-            window.userData =
-                userData;
+            if (!materialId) {
+
+                alert("請選擇教材");
+
+                return;
+
+            }
+
+
+            const subject =
+                userData.subjects.find(
+                    s => s.id == subjectId
+                );
+
+
+            if (!subject) {
+
+                return;
+
+            }
+
+
+            const material =
+                subject.materials.find(
+                    m => m.id == materialId
+                );
+
+
+            if (!material) {
+
+                return;
+
+            }
+
+
+            if (
+                !Number.isFinite(startPage) ||
+                !Number.isFinite(endPage)
+            ) {
+
+                alert(
+                    "請輸入開始頁與結束頁"
+                );
+
+                return;
+
+            }
+
+
+            if (startPage < 1) {
+
+                alert(
+                    "開始頁不能小於 1"
+                );
+
+                return;
+
+            }
+
+
+            if (endPage < startPage) {
+
+                alert(
+                    "結束頁不能小於開始頁"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                endPage >
+                material.target
+            ) {
+
+                alert(
+                    `這份教材只有 ${material.target} 頁。`
+                );
+
+                return;
+
+            }
+
+
+            const pagesRead =
+                endPage -
+                startPage +
+                1;
+
+
+            /*
+             * 用「目前讀到哪一頁」計算進度。
+             *
+             * 例如：
+             *
+             * 原本已讀到 19
+             * 本次 20～35
+             * → 進度變成 35
+             *
+             * 如果之後重新讀 20～25
+             * → 不會把進度重複增加。
+             */
+
+            material.current =
+                Math.max(
+                    material.current,
+                    endPage
+                );
+
+
+            const schedule = {
+
+                id: makeId(),
+
+                date,
+
+                time,
+
+                subjectId,
+
+                materialId,
+
+                startPage,
+
+                endPage,
+
+                pagesRead,
+
+                range:
+                    `p.${startPage}-p.${endPage}`,
+
+                duration:
+                    `${pagesRead}頁`
+
+            };
+
+
+            userData.schedules.unshift(
+                schedule
+            );
+
+
+            const saved =
+                await saveUserData();
+
+
+            if (!saved) {
+
+                userData.schedules.shift();
+
+                return;
+
+            }
+
+
+            document
+                .getElementById(
+                    "schedule-form"
+                )
+                .reset();
+
+
+            document
+                .getElementById(
+                    "schedule-date"
+                )
+                .value =
+                new Date()
+                    .toISOString()
+                    .split("T")[0];
+
+
+            updateScheduleMaterialOptions();
 
 
             renderApp();
 
         }
+    );
 
 
-        // ==============================
-        // 儲存 Firebase
-        // ==============================
+/* =========================================================
+   刪除讀書紀錄
+========================================================= */
 
-        async function saveUserData() {
+window.deleteSchedule =
+    async function(scheduleId) {
 
-            if (!currentUser) {
-
-                alert("目前沒有登入帳號！");
-
-                return false;
-
-            }
+        const oldSchedules =
+            [...userData.schedules];
 
 
-            window.userData =
-                userData;
+        userData.schedules =
+            userData.schedules.filter(
+                s => s.id != scheduleId
+            );
 
 
-            try {
-
-                const docRef =
-                    doc(
-                        db,
-                        "schedules",
-                        currentUser.uid
-                    );
+        const saved =
+            await saveUserData();
 
 
-                await setDoc(
-                    docRef,
-                    {
-                        subjects:
-                            userData.subjects || [],
+        if (!saved) {
 
-                        schedules:
-                            userData.schedules || []
-                    }
-                );
+            userData.schedules =
+                oldSchedules;
 
-
-                console.log(
-                    "✅ 資料儲存成功"
-                );
-
-
-                return true;
-
-
-            } catch (e) {
-
-                console.error(
-                    "❌ Firestore 儲存失敗：",
-                    e
-                );
-
-
-                alert(
-                    "雲端儲存失敗！\n\n" +
-                    e.message
-                );
-
-
-                return false;
-
-            }
+            return;
 
         }
 
 
-        // ==============================
-        // 新增科目
-        // ==============================
+        renderApp();
 
-        document
-            .getElementById('subject-form')
-            .addEventListener(
-                'submit',
-                async function (e) {
+    };
 
-                    e.preventDefault();
 
+/* =========================================================
+   TIMER
+========================================================= */
 
-                    try {
+let timerSeconds = 0;
 
-                        const name =
-                            document
-                                .getElementById('sub-name')
-                                .value
-                                .trim();
+let timerInterval = null;
 
+let timerRunning = false;
 
-                        const target =
-                            parseInt(
-                                document
-                                    .getElementById('sub-target')
-                                    .value
-                            );
 
+function formatTime(seconds) {
 
-                        const examDate =
-                            document
-                                .getElementById('sub-exam-date')
-                                .value;
+    const h =
+        Math.floor(
+            seconds / 3600
+        );
 
 
-                        const pdfFile =
-                            document
-                                .getElementById('sub-file')
-                                .files[0];
+    const m =
+        Math.floor(
+            (seconds % 3600) / 60
+        );
 
 
-                        if (
-                            !name ||
-                            isNaN(target) ||
-                            target <= 0
-                        ) {
+    const s =
+        seconds % 60;
 
-                            alert(
-                                "請填寫完整的科目名稱與有效的總頁數！"
-                            );
 
-                            return;
+    return [
 
-                        }
+        h,
+        m,
+        s
 
+    ]
+    .map(
+        value =>
+            String(value)
+                .padStart(2, "0")
+    )
+    .join(":");
 
-                        userData.subjects.push({
+}
 
-                            id: Date.now(),
 
-                            name: name,
+document
+    .getElementById("timer-start")
+    .addEventListener(
+        "click",
+        () => {
 
-                            target: target,
-
-                            current: 0,
-
-                            examDate: examDate,
-
-                            fileName:
-                                pdfFile
-                                    ? pdfFile.name
-                                    : ""
-
-                        });
-
-
-                        const saved =
-                            await saveUserData();
-
-
-                        if (!saved) {
-
-                            return;
-
-                        }
-
-
-                        document
-                            .getElementById('subject-form')
-                            .reset();
-
-
-                        document
-                            .getElementById('pdf-info')
-                            .textContent =
-                            "PDF 只會在本機分析頁數，不會上傳或儲存。";
-
-
-                        renderApp();
-
-
-                        alert(
-                            "✅ 科目建立成功！"
-                        );
-
-
-                    } catch (err) {
-
-                        console.error(
-                            "建立科目錯誤：",
-                            err
-                        );
-
-
-                        alert(
-                            "建立科目失敗：" +
-                            err.message
-                        );
-
-                    }
-
-                }
-            );
-
-
-        // ==============================
-        // 更新已讀頁數
-        // ==============================
-
-        window.updateProgressDirect =
-            async function (
-                id,
-                val
-            ) {
-
-                const sub =
-                    userData.subjects.find(
-                        s => s.id === id
-                    );
-
-
-                if (sub) {
-
-                    sub.current =
-                        Math.max(
-                            0,
-                            Math.min(
-                                sub.target,
-                                parseInt(val) || 0
-                            )
-                        );
-
-
-                    await saveUserData();
-
-                    renderApp();
-
-                }
-
-            };
-
-
-        // ==============================
-        // 刪除科目
-        // ==============================
-
-        window.deleteSubject =
-            async function (id) {
-
-                userData.subjects =
-                    userData.subjects.filter(
-                        s => s.id !== id
-                    );
-
-
-                userData.schedules =
-                    userData.schedules.filter(
-                        sch =>
-                            sch.subjectId !== id
-                    );
-
-
-                await saveUserData();
-
-                renderApp();
-
-            };
-
-
-        // ==============================
-        // 新增排程
-        // ==============================
-
-        document
-            .getElementById('schedule-form')
-            .addEventListener(
-                'submit',
-                async function (e) {
-
-                    e.preventDefault();
-
-
-                    const date =
-                        document
-                            .getElementById('sch-date')
-                            .value;
-
-
-                    const time =
-                        document
-                            .getElementById('sch-time')
-                            .value;
-
-
-                    const subjectId =
-                        parseInt(
-                            document
-                                .getElementById('sch-subject')
-                                .value
-                        );
-
-
-                    if (!subjectId) {
-
-                        alert(
-                            "請選擇科目！"
-                        );
-
-                        return;
-
-                    }
-
-
-                    userData.schedules.unshift({
-
-                        id: Date.now(),
-
-                        date: date,
-
-                        time: time,
-
-                        subjectId: subjectId,
-
-                        duration: "0秒",
-
-                        range: ""
-
-                    });
-
-
-                    document
-                        .getElementById('schedule-form')
-                        .reset();
-
-
-                    updateDateTime();
-
-
-                    await saveUserData();
-
-                    renderApp();
-
-                }
-            );
-
-
-        // ==============================
-        // 刪除排程
-        // ==============================
-
-        window.deleteSchedule =
-            async function (id) {
-
-                userData.schedules =
-                    userData.schedules.filter(
-                        sch =>
-                            sch.id !== id
-                    );
-
-
-                await saveUserData();
-
-                renderApp();
-
-            };
-
-
-        // ==============================
-        // 修改讀書範圍
-        // ==============================
-
-        window.updateScheduleField =
-            async function (
-                id,
-                field,
-                value
-            ) {
-
-                const sch =
-                    userData.schedules.find(
-                        s => s.id === id
-                    );
-
-
-                if (sch) {
-
-                    sch[field] =
-                        value;
-
-                    await saveUserData();
-
-                }
-
-            };
-
-
-        // ==============================
-        // 開始計時
-        // ==============================
-
-        window.startTimer =
-            function () {
-
-                const subId =
-                    parseInt(
-                        document
-                            .getElementById(
-                                'timer-subject-select'
-                            )
-                            .value
-                    );
-
-
-                if (!subId) {
-
-                    alert(
-                        "請先選擇要計時的科目！"
-                    );
-
-                    return;
-
-                }
-
-
-                const now =
-                    new Date();
-
-
-                const dateStr =
-                    now
-                        .toISOString()
-                        .split('T')[0];
-
-
-                const timeStr =
-                    `${String(
-                        now.getHours()
-                    ).padStart(2, '0')}:` +
-                    `${String(
-                        now.getMinutes()
-                    ).padStart(2, '0')}:` +
-                    `${String(
-                        now.getSeconds()
-                    ).padStart(2, '0')}開始`;
-
-
-                activeTimerSession = {
-
-                    id: Date.now(),
-
-                    date: dateStr,
-
-                    time: timeStr,
-
-                    subjectId: subId,
-
-                    seconds: 0,
-
-                    range: ""
-
-                };
-
-
-                timerSeconds = 0;
-
-
+            const subjectId =
                 document
                     .getElementById(
-                        'timer-status-badge'
+                        "timer-subject"
                     )
-                    .textContent =
-                    "計時中...";
+                    .value;
 
 
-                document
-                    .getElementById(
-                        'timer-status-badge'
-                    )
-                    .className =
-                    "text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-medium";
-
-
-                document
-                    .getElementById(
-                        'timer-start-btn'
-                    )
-                    .disabled =
-                    true;
-
-
-                document
-                    .getElementById(
-                        'timer-start-btn'
-                    )
-                    .classList.add(
-                        'opacity-50'
-                    );
-
-
-                document
-                    .getElementById(
-                        'timer-stop-btn'
-                    )
-                    .disabled =
-                    false;
-
-
-                document
-                    .getElementById(
-                        'timer-stop-btn'
-                    )
-                    .classList.remove(
-                        'opacity-50'
-                    );
-
-
-                timerInterval =
-                    setInterval(
-                        () => {
-
-                            timerSeconds++;
-
-                            activeTimerSession.seconds =
-                                timerSeconds;
-
-
-                            const hrs =
-                                String(
-                                    Math.floor(
-                                        timerSeconds /
-                                        3600
-                                    )
-                                ).padStart(
-                                    2,
-                                    '0'
-                                );
-
-
-                            const mins =
-                                String(
-                                    Math.floor(
-                                        (
-                                            timerSeconds %
-                                            3600
-                                        ) / 60
-                                    )
-                                ).padStart(
-                                    2,
-                                    '0'
-                                );
-
-
-                            const secs =
-                                String(
-                                    timerSeconds %
-                                    60
-                                ).padStart(
-                                    2,
-                                    '0'
-                                );
-
-
-                            document
-                                .getElementById(
-                                    'simple-timer-display'
-                                )
-                                .textContent =
-                                `${hrs}:${mins}:${secs}`;
-
-                        },
-                        1000
-                    );
-
-            };
-
-
-        // ==============================
-        // 結束計時
-        // ==============================
-
-        window.stopTimer =
-            async function () {
-
-                if (!activeTimerSession)
-                    return;
-
-
-                clearInterval(
-                    timerInterval
-                );
-
-
-                const hrs =
-                    Math.floor(
-                        activeTimerSession.seconds /
-                        3600
-                    );
-
-
-                const mins =
-                    Math.floor(
-                        (
-                            activeTimerSession.seconds %
-                            3600
-                        ) / 60
-                    );
-
-
-                const secs =
-                    activeTimerSession.seconds %
-                    60;
-
-
-                let durStr = "";
-
-
-                if (hrs > 0)
-                    durStr += `${hrs}時`;
-
-
-                if (
-                    mins > 0 ||
-                    hrs > 0
-                )
-                    durStr += `${mins}分`;
-
-
-                durStr += `${secs}秒`;
-
-
-                activeTimerSession.duration =
-                    durStr;
-
-
-                userData.schedules.unshift(
-                    activeTimerSession
-                );
-
-
-                activeTimerSession = null;
-
-                timerSeconds = 0;
-
-
-                document
-                    .getElementById(
-                        'simple-timer-display'
-                    )
-                    .textContent =
-                    "00:00:00";
-
-
-                document
-                    .getElementById(
-                        'timer-status-badge'
-                    )
-                    .textContent =
-                    "就緒";
-
-
-                document
-                    .getElementById(
-                        'timer-status-badge'
-                    )
-                    .className =
-                    "text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-medium";
-
-
-                document
-                    .getElementById(
-                        'timer-start-btn'
-                    )
-                    .disabled =
-                    false;
-
-
-                document
-                    .getElementById(
-                        'timer-start-btn'
-                    )
-                    .classList.remove(
-                        'opacity-50'
-                    );
-
-
-                document
-                    .getElementById(
-                        'timer-stop-btn'
-                    )
-                    .disabled =
-                    true;
-
-
-                document
-                    .getElementById(
-                        'timer-stop-btn'
-                    )
-                    .classList.add(
-                        'opacity-50'
-                    );
-
-
-                await saveUserData();
-
-                renderApp();
-
+            if (!subjectId) {
 
                 alert(
-                    "計時完成！已新增至下方紀錄。"
+                    "請先選擇科目"
                 );
+
+                return;
+
+            }
+
+
+            if (timerRunning) {
+
+                return;
+
+            }
+
+
+            timerRunning = true;
+
+            timerSeconds = 0;
+
+
+            document
+                .getElementById(
+                    "timer-start"
+                )
+                .classList.add(
+                    "hidden"
+                );
+
+
+            document
+                .getElementById(
+                    "timer-stop"
+                )
+                .classList.remove(
+                    "hidden"
+                );
+
+
+            document
+                .getElementById(
+                    "timer-status"
+                )
+                .textContent =
+                "正在讀書";
+
+
+            timerInterval =
+                setInterval(
+                    () => {
+
+                        timerSeconds++;
+
+
+                        document
+                            .getElementById(
+                                "timer-display"
+                            )
+                            .textContent =
+                            formatTime(
+                                timerSeconds
+                            );
+
+                    },
+                    1000
+                );
+
+        }
+    );
+
+
+document
+    .getElementById("timer-stop")
+    .addEventListener(
+        "click",
+        async () => {
+
+            if (!timerRunning) {
+
+                return;
+
+            }
+
+
+            clearInterval(
+                timerInterval
+            );
+
+
+            timerRunning = false;
+
+
+            const subjectId =
+                document
+                    .getElementById(
+                        "timer-subject"
+                    )
+                    .value;
+
+
+            const now =
+                new Date();
+
+
+            const schedule = {
+
+                id: makeId(),
+
+                date:
+                    now.toISOString()
+                       .split("T")[0],
+
+                time:
+                    now.toTimeString()
+                       .slice(0, 5),
+
+                subjectId,
+
+                materialId: "",
+
+                startPage: 0,
+
+                endPage: 0,
+
+                pagesRead: 0,
+
+                range: "",
+
+                duration:
+                    formatTime(
+                        timerSeconds
+                    )
 
             };
 
 
-        // ==============================
-        // 畫面渲染
-        // ==============================
-
-        function renderApp() {
-
-            window.userData =
-                userData;
+            userData.schedules.unshift(
+                schedule
+            );
 
 
-            const totalSub =
-                userData.subjects.length;
+            await saveUserData();
 
 
-            const totalPages =
-                userData.subjects.reduce(
-                    (
-                        sum,
-                        s
-                    ) =>
-                        sum +
-                        (
-                            Number(s.current) ||
-                            0
-                        ),
-                    0
+            document
+                .getElementById(
+                    "timer-start"
+                )
+                .classList.remove(
+                    "hidden"
                 );
 
 
-            const totalTarget =
-                userData.subjects.reduce(
-                    (
-                        sum,
-                        s
-                    ) =>
-                        sum +
-                        (
-                            Number(s.target) ||
-                            0
-                        ),
-                    0
+            document
+                .getElementById(
+                    "timer-stop"
+                )
+                .classList.add(
+                    "hidden"
                 );
 
 
-            const avgProg =
-                totalTarget > 0
-                    ? Math.round(
-                        (
-                            totalPages /
-                            totalTarget
-                        ) *
-                        100
-                    )
-                    : 0;
+            document
+                .getElementById(
+                    "timer-status"
+                )
+                .textContent =
+                "已完成";
 
 
-            // KPI
-            const totalSubjectsEl =
-                document.getElementById(
-                    'kpi-total-subjects'
-                );
+            timerSeconds = 0;
 
 
-            const completedPagesEl =
-                document.getElementById(
-                    'kpi-completed-pages'
-                );
+            document
+                .getElementById(
+                    "timer-display"
+                )
+                .textContent =
+                "00:00:00";
 
 
-            const avgProgressEl =
-                document.getElementById(
-                    'kpi-avg-progress'
-                );
+            renderApp();
+
+        }
+    );
 
 
-            if (totalSubjectsEl) {
+/* =========================================================
+   RENDER APP
+========================================================= */
 
-                totalSubjectsEl.textContent =
-                    totalSub;
+function renderApp() {
 
-            }
+    renderSubjects();
 
+    renderSelectors();
 
-            if (completedPagesEl) {
+    renderSchedules();
 
-                completedPagesEl.firstChild.textContent =
-                    `${totalPages} 頁 `;
+    renderKPI();
 
-            }
-
-
-            if (avgProgressEl) {
-
-                avgProgressEl.textContent =
-                    `(${avgProg}%)`;
-
-            }
+}
 
 
-            // 元件
-            const listEl =
-                document.getElementById(
-                    'subject-list'
-                );
+/* =========================================================
+   KPI
+========================================================= */
+
+function renderKPI() {
+
+    let totalSubjects =
+        userData.subjects.length;
 
 
-            const subjectSelect =
-                document.getElementById(
-                    'sch-subject'
-                );
+    let totalTarget = 0;
+
+    let totalCurrent = 0;
 
 
-            const timerSubSelect =
-                document.getElementById(
-                    'timer-subject-select'
-                );
+    userData.subjects.forEach(
+        subject => {
+
+            subject.materials.forEach(
+                material => {
+
+                    totalTarget +=
+                        Number(
+                            material.target
+                        ) || 0;
 
 
-            // 科目
-            if (
-                userData.subjects.length === 0
-            ) {
-
-                listEl.innerHTML =
-                    `
-                    <p class="text-xs text-slate-400 text-center py-3">
-                        尚無科目
-                    </p>
-                    `;
-
-
-                subjectSelect.innerHTML =
-                    `
-                    <option value="">
-                        請先新增科目
-                    </option>
-                    `;
-
-
-                timerSubSelect.innerHTML =
-                    `
-                    <option value="">
-                        請先新增科目
-                    </option>
-                    `;
-
-            } else {
-
-                const currentSubId =
-                    subjectSelect.value;
-
-
-                const opts =
-                    userData.subjects
-                        .map(
-                            s =>
-                                `
-                                <option value="${s.id}">
-                                    ${s.name}
-                                    （總 ${s.target} 頁）
-                                </option>
-                                `
-                        )
-                        .join('');
-
-
-                subjectSelect.innerHTML =
-                    `
-                    <option value="">
-                        請選擇科目
-                    </option>
-                    ` +
-                    opts;
-
-
-                timerSubSelect.innerHTML =
-                    `
-                    <option value="">
-                        選擇計時科目
-                    </option>
-                    ` +
-                    opts;
-
-
-                if (currentSubId) {
-
-                    subjectSelect.value =
-                        currentSubId;
+                    totalCurrent +=
+                        Number(
+                            material.current
+                        ) || 0;
 
                 }
+            );
+
+        }
+    );
 
 
-                listEl.innerHTML =
-                    userData.subjects
-                        .map(
-                            s => {
-
-                                const target =
-                                    Number(s.target) ||
-                                    0;
-
-
-                                const current =
-                                    Number(s.current) ||
-                                    0;
+    const average =
+        totalTarget > 0
+            ? Math.round(
+                totalCurrent /
+                totalTarget *
+                100
+              )
+            : 0;
 
 
-                                const percent =
-                                    target > 0
-                                        ? Math.min(
-                                            100,
-                                            Math.round(
-                                                (
-                                                    current /
-                                                    target
-                                                ) *
-                                                100
-                                            )
-                                        )
-                                        : 0;
+    const totalSubjectsEl =
+        document.getElementById(
+            "kpi-total-subjects"
+        );
 
 
-                                const remaining =
-                                    Math.max(
-                                        0,
-                                        target -
-                                        current
-                                    );
+    const completedPagesEl =
+        document.getElementById(
+            "kpi-completed-pages-number"
+        );
 
 
-                                return `
-                                    <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-200">
-
-                                        <div class="flex justify-between items-center">
-
-                                            <div>
-
-                                                <span class="font-bold text-slate-700 text-xs">
-                                                    ${s.name}
-                                                </span>
-
-                                                ${
-                                                    s.fileName
-                                                        ? `
-                                                            <div class="text-[10px] text-slate-400 mt-0.5">
-                                                                📄 ${s.fileName}
-                                                            </div>
-                                                        `
-                                                        : ''
-                                                }
-
-                                            </div>
-
-                                            <button
-                                                onclick="deleteSubject(${s.id})"
-                                                class="text-slate-400 hover:text-red-500 text-xs"
-                                            >
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-
-                                        </div>
+    const avgProgressEl =
+        document.getElementById(
+            "kpi-avg-progress"
+        );
 
 
-                                        <div class="flex justify-between text-[11px] text-slate-500">
+    if (totalSubjectsEl) {
 
-                                            <span>
-                                                已讀:
-                                                <b>${current}</b>
-                                                /
-                                                總共 ${target} 頁
-                                            </span>
+        totalSubjectsEl.textContent =
+            totalSubjects;
 
-                                            <span class="text-indigo-600 font-bold">
-                                                剩餘 ${remaining} 頁
-                                                (${percent}%)
-                                            </span>
-
-                                        </div>
+    }
 
 
-                                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+    if (completedPagesEl) {
 
-                                            <div
-                                                class="bg-indigo-600 h-full"
-                                                style="width: ${percent}%"
-                                            ></div>
+        completedPagesEl.textContent =
+            totalCurrent;
 
-                                        </div>
+    }
 
 
-                                        <div class="flex items-center justify-between pt-1">
+    if (avgProgressEl) {
 
-                                            <span class="text-[11px] text-slate-500">
-                                                已讀頁數：
-                                            </span>
+        avgProgressEl.textContent =
+            `${average}%`;
 
-                                            <input
-                                                type="number"
-                                                value="${current}"
-                                                min="0"
-                                                max="${target}"
-                                                onchange="updateProgressDirect(${s.id}, this.value)"
-                                                class="w-20 px-2 py-0.5 text-xs border rounded bg-white text-center font-medium outline-none"
-                                            >
+    }
 
-                                        </div>
+}
 
 
-                                        ${
-                                            s.examDate
-                                                ? `
-                                                    <div class="text-[10px] text-slate-400">
-                                                        📅 考試日期：${s.examDate}
-                                                    </div>
-                                                `
-                                                : ''
-                                        }
+/* =========================================================
+   科目列表
+========================================================= */
 
-                                    </div>
-                                `;
+function renderSubjects() {
+
+    const container =
+        document.getElementById(
+            "subject-list"
+        );
+
+
+    if (
+        userData.subjects.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="text-center
+                        text-gray-400
+                        py-8">
+
+                尚未建立科目
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        userData.subjects
+            .map(
+                subject => {
+
+                    let totalTarget = 0;
+
+                    let totalCurrent = 0;
+
+
+                    subject.materials
+                        .forEach(
+                            material => {
+
+                                totalTarget +=
+                                    material.target;
+
+                                totalCurrent +=
+                                    material.current;
 
                             }
-                        )
-                        .join('');
-
-            }
+                        );
 
 
-            // ==============================
-            // 排程
-            // ==============================
+                    const subjectProgress =
+                        totalTarget > 0
+                            ? Math.round(
+                                totalCurrent /
+                                totalTarget *
+                                100
+                              )
+                            : 0;
 
-            const tbody =
-                document.getElementById(
-                    'schedule-table-body'
-                );
 
+                    return `
+
+                        <div class="border
+                                    rounded-xl
+                                    p-4">
+
+                            <!-- 科目標題 -->
+
+                            <div class="flex
+                                        items-center
+                                        justify-between
+                                        mb-3">
+
+                                <div>
+
+                                    <div class="font-bold text-lg">
+
+                                        ${escapeHtml(
+                                            subject.name
+                                        )}
+
+                                    </div>
+
+                                    ${
+                                        subject.examDate
+                                            ? `
+                                                <div class="text-xs
+                                                            text-gray-500
+                                                            mt-1">
+
+                                                    考試：
+                                                    ${subject.examDate}
+
+                                                </div>
+                                              `
+                                            : ""
+                                    }
+
+                                </div>
+
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="text-sm
+                                                font-bold">
+
+                                        ${subjectProgress}%
+
+                                    </div>
+
+
+                                    <button
+                                        onclick="deleteSubject(${subject.id})"
+                                        class="text-red-500
+                                               hover:text-red-700">
+
+                                        <i class="fa-solid fa-trash"></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 科目總進度 -->
+
+                            <div class="progress-bg mb-4">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:${subjectProgress}%">
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 教材 -->
+
+                            <div class="space-y-3">
+
+                                ${
+                                    subject.materials
+                                        .map(
+                                            material => {
+
+                                                const remaining =
+                                                    Math.max(
+                                                        0,
+                                                        material.target -
+                                                        material.current
+                                                    );
+
+
+                                                const progress =
+                                                    material.target > 0
+                                                        ? Math.round(
+                                                            material.current /
+                                                            material.target *
+                                                            100
+                                                          )
+                                                        : 0;
+
+
+                                                return `
+
+                                                    <div class="bg-gray-50
+                                                                border
+                                                                rounded-lg
+                                                                p-3">
+
+                                                        <div class="flex
+                                                                    justify-between
+                                                                    items-start
+                                                                    gap-3">
+
+                                                            <div class="min-w-0">
+
+                                                                <div class="font-medium truncate">
+
+                                                                    <i class="fa-solid fa-file-pdf mr-2"></i>
+
+                                                                    ${escapeHtml(
+                                                                        material.fileName
+                                                                    )}
+
+                                                                </div>
+
+                                                                <div class="text-xs
+                                                                            text-gray-500
+                                                                            mt-1">
+
+                                                                    已讀
+                                                                    ${material.current}
+                                                                    /
+                                                                    ${material.target}
+                                                                    頁
+
+                                                                    ｜
+
+                                                                    剩餘
+                                                                    ${remaining}
+                                                                    頁
+
+                                                                </div>
+
+                                                            </div>
+
+
+                                                            <button
+                                                                onclick="deleteMaterial(${subject.id}, ${material.id})"
+                                                                class="text-gray-400
+                                                                       hover:text-red-500">
+
+                                                                <i class="fa-solid fa-xmark"></i>
+
+                                                            </button>
+
+                                                        </div>
+
+
+                                                        <div class="progress-bg mt-3">
+
+                                                            <div
+                                                                class="progress-bar"
+                                                                style="width:${progress}%">
+
+                                                            </div>
+
+                                                        </div>
+
+
+                                                        <div class="flex
+                                                                    items-center
+                                                                    justify-between
+                                                                    mt-3">
+
+                                                            <span class="text-xs text-gray-500">
+
+                                                                ${progress}%
+
+                                                            </span>
+
+
+                                                            <div class="flex items-center gap-2">
+
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max="${material.target}"
+                                                                    value="${material.current}"
+                                                                    onchange="updateMaterialProgress(${subject.id}, ${material.id}, this.value)"
+                                                                    class="w-20 border
+                                                                           rounded-lg
+                                                                           px-2
+                                                                           py-1
+                                                                           text-sm">
+
+                                                                <span class="text-xs text-gray-500">
+                                                                    已讀頁
+                                                                </span>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                `;
+
+                                            }
+                                        )
+                                        .join("")
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   SELECTORS
+========================================================= */
+
+function renderSelectors() {
+
+    const timerSelect =
+        document.getElementById(
+            "timer-subject"
+        );
+
+
+    const scheduleSubject =
+        document.getElementById(
+            "schedule-subject"
+        );
+
+
+    const oldScheduleSubject =
+        scheduleSubject.value;
+
+
+    const oldTimerSubject =
+        timerSelect.value;
+
+
+    const options = userData.subjects
+        .map(
+            subject => `
+
+                <option value="${subject.id}">
+
+                    ${escapeHtml(
+                        subject.name
+                    )}
+
+                </option>
+
+            `
+        )
+        .join("");
+
+
+    timerSelect.innerHTML = `
+
+        <option value="">
+            請選擇科目
+        </option>
+
+        ${options}
+
+    `;
+
+
+    scheduleSubject.innerHTML = `
+
+        <option value="">
+            請選擇科目
+        </option>
+
+        ${options}
+
+    `;
+
+
+    if (
+        userData.subjects.some(
+            s =>
+                String(s.id) ===
+                String(oldTimerSubject)
+        )
+    ) {
+
+        timerSelect.value =
+            oldTimerSubject;
+
+    }
+
+
+    if (
+        userData.subjects.some(
+            s =>
+                String(s.id) ===
+                String(oldScheduleSubject)
+        )
+    ) {
+
+        scheduleSubject.value =
+            oldScheduleSubject;
+
+    }
+
+
+    updateScheduleMaterialOptions();
+
+}
+
+
+/* =========================================================
+   SCHEDULE LIST
+========================================================= */
+
+function renderSchedules() {
+
+    const container =
+        document.getElementById(
+            "schedule-list"
+        );
+
+
+    if (
+        userData.schedules.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <tr>
+
+                <td colspan="6"
+                    class="text-center
+                           text-gray-400
+                           py-8">
+
+                    尚無讀書紀錄
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        userData.schedules
+            .map(
+                schedule => {
+
+                    const subject =
+                        userData.subjects.find(
+                            s =>
+                                String(s.id) ===
+                                String(
+                                    schedule.subjectId
+                                )
+                        );
+
+
+                    let material = null;
+
+
+                    if (subject) {
+
+                        material =
+                            subject.materials.find(
+                                m =>
+                                    String(m.id) ===
+                                    String(
+                                        schedule.materialId
+                                    )
+                            );
+
+                    }
+
+
+                    const subjectName =
+                        subject
+                            ? subject.name
+                            : "已刪除科目";
+
+
+                    const materialName =
+                        material
+                            ? material.fileName
+                            : (
+                                schedule.materialId
+                                    ? "已刪除教材"
+                                    : "-"
+                              );
+
+
+                    const range =
+                        schedule.range ||
+                        "-";
+
+
+                    const pages =
+                        schedule.pagesRead ||
+                        0;
+
+
+                    return `
+
+                        <tr class="border-b">
+
+                            <td class="py-3 pr-4 whitespace-nowrap">
+
+                                ${escapeHtml(
+                                    schedule.date
+                                )}
+
+                                <div class="text-xs
+                                            text-gray-400">
+
+                                    ${escapeHtml(
+                                        schedule.time
+                                    )}
+
+                                </div>
+
+                            </td>
+
+
+                            <td class="py-3 pr-4">
+
+                                ${escapeHtml(
+                                    subjectName
+                                )}
+
+                            </td>
+
+
+                            <td class="py-3 pr-4
+                                       max-w-[180px]">
+
+                                <div class="truncate">
+
+                                    ${escapeHtml(
+                                        materialName
+                                    )}
+
+                                </div>
+
+                            </td>
+
+
+                            <td class="py-3 pr-4
+                                       whitespace-nowrap">
+
+                                ${escapeHtml(
+                                    range
+                                )}
+
+                            </td>
+
+
+                            <td class="py-3 pr-4
+                                       whitespace-nowrap">
+
+                                ${
+                                    pages > 0
+                                        ? `+${pages} 頁`
+                                        : (
+                                            schedule.duration ||
+                                            "-"
+                                          )
+                                }
+
+                            </td>
+
+
+                            <td class="py-3">
+
+                                <button
+                                    onclick="deleteSchedule(${schedule.id})"
+                                    class="text-red-500
+                                           hover:text-red-700">
+
+                                    <i class="fa-solid fa-trash"></i>
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   CSV 匯出
+========================================================= */
+
+document
+    .getElementById("export-csv")
+    .addEventListener(
+        "click",
+        () => {
 
             if (
-                !userData.schedules ||
                 userData.schedules.length === 0
             ) {
 
-                tbody.innerHTML =
-                    `
-                    <tr>
-                        <td
-                            colspan="4"
-                            class="text-center py-4 text-slate-400 text-xs"
-                        >
-                            尚無紀錄
-                        </td>
-                    </tr>
-                    `;
+                alert(
+                    "目前沒有讀書紀錄可以匯出。"
+                );
 
-            } else {
-
-                tbody.innerHTML =
-                    userData.schedules
-                        .map(
-                            sch => {
-
-                                const sub =
-                                    userData.subjects.find(
-                                        s =>
-                                            s.id ===
-                                            sch.subjectId
-                                    );
-
-
-                                const subName =
-                                    sub
-                                        ? sub.name
-                                        : '已刪除';
-
-
-                                return `
-                                    <tr class="border-b hover:bg-slate-50">
-
-                                        <td class="py-2.5 px-2">
-
-                                            <span class="block text-slate-600 text-[11px] font-medium">
-                                                ${sch.date}
-                                            </span>
-
-                                            <span class="text-[11px] text-indigo-600 font-bold">
-                                                ${sch.time}
-                                            </span>
-
-                                        </td>
-
-
-                                        <td class="py-2.5 px-2">
-
-                                            <span class="font-bold text-slate-700">
-                                                ${subName}
-                                            </span>
-
-                                        </td>
-
-
-                                        <td class="py-2.5 px-2 space-y-1">
-
-                                            <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[11px]">
-                                                ⏱️ ${sch.duration || '0秒'}
-                                            </span>
-
-                                            <input
-                                                type="text"
-                                                value="${sch.range || ''}"
-                                                placeholder="填寫讀書範圍，例如：p.10-25"
-                                                onchange="updateScheduleField(${sch.id}, 'range', this.value)"
-                                                class="w-full text-xs px-2 py-1 border border-slate-200 rounded bg-white outline-none focus:border-indigo-500"
-                                            >
-
-                                        </td>
-
-
-                                        <td class="py-2.5 px-2 text-right">
-
-                                            <button
-                                                onclick="deleteSchedule(${sch.id})"
-                                                class="text-slate-400 hover:text-red-500 text-xs"
-                                            >
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-
-                                        </td>
-
-                                    </tr>
-                                `;
-
-                            }
-                        )
-                        .join('');
+                return;
 
             }
 
-        }
+
+            const rows = [
+
+                [
+                    "日期",
+                    "時間",
+                    "科目",
+                    "教材",
+                    "開始頁",
+                    "結束頁",
+                    "閱讀頁數",
+                    "範圍",
+                    "計時"
+                ]
+
+            ];
 
 
-        // ==============================
-        // CSV
-        // ==============================
+            userData.schedules
+                .forEach(
+                    schedule => {
 
-        window.exportCSV =
-            function () {
-
-                let csv =
-                    '\uFEFF日期,時段,科目,計時,範圍\n';
-
-
-                userData.schedules.forEach(
-                    sch => {
-
-                        const sub =
+                        const subject =
                             userData.subjects.find(
                                 s =>
-                                    s.id ===
-                                    sch.subjectId
+                                    String(s.id) ===
+                                    String(
+                                        schedule.subjectId
+                                    )
                             );
 
 
-                        csv +=
-                            `${sch.date},${sch.time},${sub ? sub.name : ''},${sch.duration || ''},"${sch.range || ''}"\n`;
+                        let material = null;
+
+
+                        if (subject) {
+
+                            material =
+                                subject.materials.find(
+                                    m =>
+                                        String(m.id) ===
+                                        String(
+                                            schedule.materialId
+                                        )
+                                );
+
+                        }
+
+
+                        rows.push([
+
+                            schedule.date || "",
+
+                            schedule.time || "",
+
+                            subject
+                                ? subject.name
+                                : "",
+
+                            material
+                                ? material.fileName
+                                : "",
+
+                            schedule.startPage || "",
+
+                            schedule.endPage || "",
+
+                            schedule.pagesRead || "",
+
+                            schedule.range || "",
+
+                            schedule.duration || ""
+
+                        ]);
 
                     }
                 );
 
 
-                const blob =
-                    new Blob(
-                        [csv],
-                        {
-                            type:
-                                'text/csv;charset=utf-8;'
-                        }
-                    );
+            const csv =
+                rows
+                    .map(
+                        row =>
+                            row
+                                .map(
+                                    value =>
+                                        `"${String(value)
+                                            .replace(
+                                                /"/g,
+                                                '""'
+                                            )}"`
+                                )
+                                .join(",")
+                    )
+                    .join("\n");
 
 
-                const url =
-                    URL.createObjectURL(
-                        blob
-                    );
+            const blob =
+                new Blob(
+                    [
+                        "\uFEFF" + csv
+                    ],
+                    {
+                        type:
+                            "text/csv;charset=utf-8;"
+                    }
+                );
 
 
-                const a =
-                    document.createElement(
-                        'a'
-                    );
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
 
 
-                a.href = url;
-
-                a.download =
-                    'study_records.csv';
-
-
-                a.click();
+            const a =
+                document.createElement(
+                    "a"
+                );
 
 
-                URL.revokeObjectURL(url);
+            a.href = url;
 
-            };
+            a.download =
+                "讀書紀錄.csv";
 
-    </script>
+            a.click();
+
+
+            URL.revokeObjectURL(
+                url
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   初始化日期
+========================================================= */
+
+const today =
+    new Date()
+        .toISOString()
+        .split("T")[0];
+
+
+document
+    .getElementById(
+        "schedule-date"
+    )
+    .value = today;
+
+
+/* =========================================================
+   初始 Render
+========================================================= */
+
+renderApp();
+
+</script>
 
 </body>
 </html>
