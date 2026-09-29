@@ -80,7 +80,7 @@
                     <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-list-check text-indigo-600"></i> 新增科目與考試設定
                     </h2>
-                    <form id="subject-form" onsubmit="addSubject(event)" class="space-y-3">
+                    <form id="subject-form" class="space-y-3">
                         <input type="text" id="sub-name" placeholder="科目名稱 (例如：有機化學)" required class="w-full px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                         
                         <div class="flex gap-2">
@@ -116,7 +116,7 @@
                         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-calendar-days text-indigo-600"></i> 本週讀書排程表
                         </h2>
-                        <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
+                        <button id="export-csv-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
                             <i class="fa-solid fa-download"></i> 匯出 CSV
                         </button>
                     </div>
@@ -254,7 +254,7 @@
             return { filesData, extraPages };
         }
 
-        window.addSubject = async function(e) {
+        async function addSubjectHandler(e) {
             e.preventDefault();
             const name = document.getElementById('sub-name').value;
             let targetInput = document.getElementById('sub-target').value;
@@ -266,7 +266,6 @@
             if (fileInput.files.length > 0) {
                 const parsed = await parseFiles(fileInput.files);
                 files = parsed.filesData;
-                // 如果沒有手動填寫目標總頁數，直接採用解析出來的檔案總頁數！
                 if (!targetInput) {
                     target = parsed.extraPages;
                 }
@@ -401,7 +400,7 @@
             }).join('');
         }
 
-        window.exportCSV = function() {
+        function exportCSV() {
             let csv = '\uFEFF科目,考試日期,目標頁數,已讀頁數,進度百分比\n';
             userData.subjects.forEach(s => {
                 const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
@@ -414,6 +413,10 @@
             a.download = 'study_progress_report.csv';
             a.click();
         }
+
+        // 綁定事件監聽器確保表單與按鈕絕對觸發
+        document.getElementById('subject-form').addEventListener('submit', addSubjectHandler);
+        document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
     </script>
 </body>
 </html>
