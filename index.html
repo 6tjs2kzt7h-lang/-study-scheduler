@@ -85,8 +85,8 @@
                         
                         <div class="flex gap-2">
                             <div class="w-1/2">
-                                <label class="text-xs text-slate-500 block mb-1">目標總頁數</label>
-                                <input type="number" id="sub-target" placeholder="頁數" required min="1" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <label class="text-xs text-slate-500 block mb-1">目標頁數 (選填)</label>
+                                <input type="number" id="sub-target" placeholder="若有匯入檔可不填" min="1" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
                             <div class="w-1/2">
                                 <label class="text-xs text-slate-500 block mb-1">考試日期</label>
@@ -256,7 +256,8 @@
         window.addSubject = async function(e) {
             e.preventDefault();
             const name = document.getElementById('sub-name').value;
-            let target = parseInt(document.getElementById('sub-target').value) || 0;
+            let targetInput = document.getElementById('sub-target').value;
+            let target = targetInput ? parseInt(targetInput) : 0;
             const examDate = document.getElementById('sub-exam-date').value;
             const fileInput = document.getElementById('sub-files');
 
@@ -264,8 +265,15 @@
             if (fileInput.files.length > 0) {
                 const parsed = await parseFiles(fileInput.files);
                 files = parsed.filesData;
-                // 如果使用者上傳了檔案，自動加總檔案頁數作為目標（或維持使用者設定）
-                target = Math.max(target, parsed.extraPages);
+                // 如果沒有填寫目標總頁數，直接用解析出來的檔案總頁數！
+                if (!targetInput) {
+                    target = parsed.extraPages;
+                }
+            }
+
+            if (target <= 0) {
+                alert("請至少輸入目標頁數，或上傳能自動解析頁數的 PDF 檔案！");
+                return;
             }
 
             userData.subjects.push({
@@ -334,9 +342,9 @@
                 
                 let filesHtml = '';
                 if (s.files && s.files.length > 0) {
-                    filesHtml = `<div class="text-xs text-indigo-600 bg-indigo-50 p-2 rounded-lg space-y-1">
-                        <div class="font-medium"><i class="fa-solid fa-file-arrow-down"></i> 已匯入檔案 (${s.files.length}個)：</div>
-                        ${s.files.map(f => `<div class="truncate">📄 ${f.name} <span class="text-slate-400">(${f.pages}頁)</span></div>`).join('')}
+                    filesHtml = `<div class="text-xs text-indigo-600 bg-indigo-50 p-2.5 rounded-xl space-y-1 border border-indigo-100">
+                        <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-paperclip"></i> 已匯入的檔案 (${s.files.length}個)：</div>
+                        ${s.files.map(f => `<div class="truncate flex justify-between"><span>📄 ${f.name}</span> <span class="font-semibold text-indigo-700">${f.pages}頁</span></div>`).join('')}
                     </div>`;
                 }
 
