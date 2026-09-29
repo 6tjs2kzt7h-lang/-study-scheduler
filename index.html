@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>極簡讀書規劃與計時器</title>
 
     <!-- Tailwind -->
@@ -56,3363 +55,778 @@
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-gray-50 text-gray-950">
 
 <!-- ================= HEADER ================= -->
-
 <header class="bg-white border-b">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
         <div>
             <h1 class="text-xl font-bold">
                 <i class="fa-solid fa-book-open mr-2"></i>
                 極簡讀書規劃與計時器
             </h1>
-
-            <div id="current-datetime"
-                 class="text-sm text-gray-500 mt-1">
+            <div id="current-datetime" class="text-sm text-gray-500 mt-1">
                 載入中...
             </div>
         </div>
 
         <div class="flex items-center gap-3">
-
-            <span id="user-name"
-                  class="text-sm text-gray-600">
-                尚未登入
-            </span>
-
-            <button id="login-btn"
-                    class="bg-black text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">
-                <i class="fa-brands fa-google mr-1"></i>
-                Google 登入
+            <span id="user-name" class="text-sm text-gray-600">尚未登入</span>
+            <button id="login-btn" class="bg-black text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">
+                <i class="fa-brands fa-google mr-1"></i> Google 登入
             </button>
-
-            <button id="logout-btn"
-                    class="hidden bg-gray-200 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+            <button id="logout-btn" class="hidden bg-gray-200 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
                 登出
             </button>
-
         </div>
     </div>
 </header>
 
-
 <!-- ================= LOGIN MESSAGE ================= -->
-
-<div id="login-message"
-     class="max-w-7xl mx-auto px-6 py-12 text-center">
-
+<div id="login-message" class="max-w-7xl mx-auto px-6 py-12 text-center">
     <div class="card p-10">
         <i class="fa-solid fa-cloud text-5xl text-gray-400 mb-5"></i>
-
-        <h2 class="text-2xl font-bold mb-3">
-            請先登入
-        </h2>
-
-        <p class="text-gray-500">
-            登入 Google 後即可同步你的讀書科目、教材、進度與排程。
-        </p>
+        <h2 class="text-2xl font-bold mb-3">請先登入</h2>
+        <p class="text-gray-500">登入 Google 後即可同步你的讀書科目、教材、進度與排程。</p>
     </div>
-
 </div>
 
-
 <!-- ================= APP ================= -->
-
-<main id="app"
-      class="hidden max-w-7xl mx-auto px-6 py-6">
+<main id="app" class="hidden max-w-7xl mx-auto px-6 py-6">
 
     <!-- ================= TIMER ================= -->
-
     <section class="card p-6 mb-6">
-
-        <div class="flex flex-col md:flex-row
-                    items-center justify-between gap-6">
-
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
                 <h2 class="font-bold text-lg mb-2">
-                    <i class="fa-solid fa-stopwatch mr-2"></i>
-                    讀書計時器
+                    <i class="fa-solid fa-stopwatch mr-2"></i> 讀書計時器
                 </h2>
-
                 <div class="flex items-center gap-3">
-
-                    <select id="timer-subject"
-                            class="border rounded-lg px-3 py-2">
-                        <option value="">
-                            請選擇科目
-                        </option>
+                    <select id="timer-subject" class="border rounded-lg px-3 py-2">
+                        <option value="">請選擇科目</option>
                     </select>
-
-                    <button id="timer-start"
-                            class="bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-800">
-                        開始
-                    </button>
-
-                    <button id="timer-stop"
-                            class="hidden bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700">
-                        停止
-                    </button>
-
+                    <button id="timer-start" class="bg-black text-white px-5 py-2 rounded-lg hover:bg-gray-800">開始</button>
+                    <button id="timer-stop" class="hidden bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700">停止</button>
                 </div>
             </div>
-
-
             <div class="text-center">
-
-                <div id="timer-display"
-                     class="text-5xl font-mono font-bold">
-                    00:00:00
-                </div>
-
-                <div id="timer-status"
-                     class="text-sm text-gray-500 mt-1">
-                    尚未開始
-                </div>
-
+                <div id="timer-display" class="text-5xl font-mono font-bold">00:00:00</div>
+                <div id="timer-status" class="text-sm text-gray-500 mt-1">尚未開始</div>
             </div>
-
         </div>
-
     </section>
 
-
     <!-- ================= KPI ================= -->
-
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-
         <div class="card p-5">
-            <div class="text-sm text-gray-500">
-                科目數
-            </div>
-
-            <div id="kpi-total-subjects"
-                 class="text-3xl font-bold mt-2">
-                0
-            </div>
+            <div class="text-sm text-gray-500">科目數</div>
+            <div id="kpi-total-subjects" class="text-3xl font-bold mt-2">0</div>
         </div>
-
-
         <div class="card p-5">
-
-            <div class="text-sm text-gray-500">
-                已讀頁數
-            </div>
-
+            <div class="text-sm text-gray-500">已讀頁數</div>
             <div class="text-3xl font-bold mt-2">
                 <span id="kpi-completed-pages-number">0</span>
                 <span class="text-lg">頁</span>
             </div>
-
         </div>
-
-
         <div class="card p-5">
-
-            <div class="text-sm text-gray-500">
-                整體平均進度
-            </div>
-
-            <div id="kpi-avg-progress"
-                 class="text-3xl font-bold mt-2">
-                0%
-            </div>
-
+            <div class="text-sm text-gray-500">整體平均進度</div>
+            <div id="kpi-avg-progress" class="text-3xl font-bold mt-2">0%</div>
         </div>
-
     </section>
 
-
     <!-- ================= MAIN GRID ================= -->
-
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-
         <!-- ================= LEFT ================= -->
-
         <div class="space-y-6">
-
-
             <!-- 新增科目 -->
-
             <section class="card p-6">
-
                 <h2 class="font-bold text-lg mb-5">
-                    <i class="fa-solid fa-plus mr-2"></i>
-                    新增讀書科目
+                    <i class="fa-solid fa-plus mr-2"></i> 新增讀書科目
                 </h2>
-
-
-                <form id="subject-form"
-                      class="space-y-4">
-
-                    <!-- 科目 -->
-
+                <form id="subject-form" class="space-y-4">
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            科目名稱
-                        </label>
-
-                        <input
-                            id="sub-name"
-                            type="text"
-                            placeholder="例如：工程數學"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required
-                        >
-
+                        <label class="block text-sm font-medium mb-1">科目名稱</label>
+                        <input id="sub-name" type="text" placeholder="例如：工程數學" class="w-full border rounded-lg px-3 py-2" required>
                     </div>
-
-
-                    <!-- 考試日期 -->
-
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            考試日期
-                        </label>
-
-                        <input
-                            id="sub-exam-date"
-                            type="date"
-                            class="w-full border rounded-lg px-3 py-2"
-                        >
-
+                        <label class="block text-sm font-medium mb-1">考試日期</label>
+                        <input id="sub-exam-date" type="date" class="w-full border rounded-lg px-3 py-2">
                     </div>
-
-
-                    <!-- PDF -->
-
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            讀書教材 PDF
-                        </label>
-
-                        <input
-                            id="material-files"
-                            type="file"
-                            accept=".pdf,application/pdf"
-                            multiple
-                            class="w-full border rounded-lg px-3 py-2 bg-white"
-                        >
-
-                        <p class="text-xs text-gray-500 mt-2">
-                            可以一次選擇多份 PDF。
-                            PDF 只會在你的瀏覽器分析頁數，不會上傳到 Firebase。
-                        </p>
-
+                        <label class="block text-sm font-medium mb-1">讀書教材 PDF</label>
+                        <input id="material-files" type="file" accept=".pdf,application/pdf" multiple class="w-full border rounded-lg px-3 py-2 bg-white">
+                        <p class="text-xs text-gray-500 mt-2">可以一次選擇多份 PDF。PDF 只會在你的瀏覽器分析頁數。</p>
                     </div>
-
-
-                    <!-- PDF 分析結果 -->
-
-                    <div id="material-preview"
-                         class="space-y-2">
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
-
-                        <i class="fa-solid fa-plus mr-2"></i>
-                        建立科目
-
+                    <div id="material-preview" class="space-y-2"></div>
+                    <button type="submit" class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
+                        <i class="fa-solid fa-plus mr-2"></i> 建立科目
                     </button>
-
                 </form>
-
             </section>
 
-
-            <!-- ================= SUBJECT LIST ================= -->
-
+            <!-- SUBJECT LIST -->
             <section class="card p-6">
-
                 <div class="flex items-center justify-between mb-5">
-
                     <h2 class="font-bold text-lg">
-                        <i class="fa-solid fa-layer-group mr-2"></i>
-                        我的科目
+                        <i class="fa-solid fa-layer-group mr-2"></i> 我的科目
                     </h2>
-
                 </div>
-
-                <div id="subject-list"
-                     class="space-y-4">
-
-                    <div class="text-center text-gray-400 py-8">
-                        尚未建立科目
-                    </div>
-
+                <div id="subject-list" class="space-y-4">
+                    <div class="text-center text-gray-400 py-8">尚未建立科目</div>
                 </div>
-
             </section>
-
         </div>
-
 
         <!-- ================= RIGHT ================= -->
-
         <div class="space-y-6">
-
-
-            <!-- ================= 排程 ================= -->
-
+            <!-- 排程 -->
             <section class="card p-6">
-
                 <h2 class="font-bold text-lg mb-5">
-                    <i class="fa-solid fa-calendar-check mr-2"></i>
-                    排程與讀書進度
+                    <i class="fa-solid fa-calendar-check mr-2"></i> 排程與讀書進度
                 </h2>
-
-
-                <form id="schedule-form"
-                      class="space-y-4">
-
-
-                    <!-- 日期 -->
-
+                <form id="schedule-form" class="space-y-4">
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            日期
-                        </label>
-
-                        <input
-                            id="schedule-date"
-                            type="date"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required
-                        >
-
+                        <label class="block text-sm font-medium mb-1">日期</label>
+                        <input id="schedule-date" type="date" class="w-full border rounded-lg px-3 py-2" required>
                     </div>
-
-
-                    <!-- 時間 -->
-
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            時間
-                        </label>
-
-                        <input
-                            id="schedule-time"
-                            type="time"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required
-                        >
-
+                        <label class="block text-sm font-medium mb-1">時間</label>
+                        <input id="schedule-time" type="time" class="w-full border rounded-lg px-3 py-2" required>
                     </div>
-
-
-                    <!-- 科目 -->
-
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            科目
-                        </label>
-
-                        <select
-                            id="schedule-subject"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required>
-
-                            <option value="">
-                                請選擇科目
-                            </option>
-
+                        <label class="block text-sm font-medium mb-1">科目</label>
+                        <select id="schedule-subject" class="w-full border rounded-lg px-3 py-2" required>
+                            <option value="">請選擇科目</option>
                         </select>
-
                     </div>
-
-
-                    <!-- 教材 -->
-
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            教材
-                        </label>
-
-                        <select
-                            id="schedule-material"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required>
-
-                            <option value="">
-                                請先選擇科目
-                            </option>
-
+                        <label class="block text-sm font-medium mb-1">教材</label>
+                        <select id="schedule-material" class="w-full border rounded-lg px-3 py-2" required>
+                            <option value="">請先選擇科目</option>
                         </select>
-
                     </div>
-
-
-                    <!-- 教材資訊 -->
-
-                    <div id="reading-info"
-                         class="hidden bg-gray-100 rounded-lg p-3 text-sm">
-                    </div>
-
-
-                    <!-- 開始頁 -->
-
+                    <div id="reading-info" class="hidden bg-gray-100 rounded-lg p-3 text-sm"></div>
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            開始頁
-                        </label>
-
-                        <input
-                            id="start-page"
-                            type="number"
-                            min="1"
-                            placeholder="例如：20"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required
-                        >
-
+                        <label class="block text-sm font-medium mb-1">開始頁</label>
+                        <input id="start-page" type="number" min="1" placeholder="例如：20" class="w-full border rounded-lg px-3 py-2" required>
                     </div>
-
-
-                    <!-- 結束頁 -->
-
                     <div>
-
-                        <label class="block text-sm font-medium mb-1">
-                            結束頁
-                        </label>
-
-                        <input
-                            id="end-page"
-                            type="number"
-                            min="1"
-                            placeholder="例如：35"
-                            class="w-full border rounded-lg px-3 py-2"
-                            required
-                        >
-
+                        <label class="block text-sm font-medium mb-1">結束頁</label>
+                        <input id="end-page" type="number" min="1" placeholder="例如：35" class="w-full border rounded-lg px-3 py-2" required>
                     </div>
-
-
-                    <!-- 本次閱讀 -->
-
-                    <div id="reading-count"
-                         class="hidden bg-black text-white rounded-lg p-4">
-
-                        <div class="text-sm opacity-70">
-                            本次閱讀
-                        </div>
-
-                        <div id="reading-count-number"
-                             class="text-2xl font-bold">
-                            0 頁
-                        </div>
-
+                    <div id="reading-count" class="hidden bg-black text-white rounded-lg p-4">
+                        <div class="text-sm opacity-70">本次閱讀</div>
+                        <div id="reading-count-number" class="text-2xl font-bold">0 頁</div>
                     </div>
-
-
-                    <button
-                        type="submit"
-                        class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
-
-                        <i class="fa-solid fa-check mr-2"></i>
-                        儲存讀書紀錄
-
+                    <button type="submit" class="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800">
+                        <i class="fa-solid fa-check mr-2"></i> 儲存讀書紀錄
                     </button>
-
                 </form>
-
             </section>
 
-
-            <!-- ================= HISTORY ================= -->
-
+            <!-- HISTORY -->
             <section class="card p-6">
-
                 <div class="flex items-center justify-between mb-5">
-
                     <h2 class="font-bold text-lg">
-                        <i class="fa-solid fa-clock-rotate-left mr-2"></i>
-                        讀書紀錄
+                        <i class="fa-solid fa-clock-rotate-left mr-2"></i> 讀書紀錄
                     </h2>
-
-                    <button
-                        id="export-csv"
-                        class="bg-gray-100 px-3 py-2 rounded-lg text-sm hover:bg-gray-200">
-
-                        <i class="fa-solid fa-download mr-1"></i>
-                        CSV
-
+                    <button id="export-csv" class="bg-gray-100 px-3 py-2 rounded-lg text-sm hover:bg-gray-200">
+                        <i class="fa-solid fa-download mr-1"></i> CSV
                     </button>
-
                 </div>
-
-
                 <div class="overflow-x-auto">
-
                     <table class="w-full text-sm">
-
                         <thead>
-
                             <tr class="border-b text-left">
-
-                                <th class="py-3 pr-4">
-                                    日期
-                                </th>
-
-                                <th class="py-3 pr-4">
-                                    科目
-                                </th>
-
-                                <th class="py-3 pr-4">
-                                    教材
-                                </th>
-
-                                <th class="py-3 pr-4">
-                                    閱讀範圍
-                                </th>
-
-                                <th class="py-3 pr-4">
-                                    頁數
-                                </th>
-
-                                <th class="py-3">
-                                    操作
-                                </th>
-
+                                <th class="py-3 pr-4">日期</th>
+                                <th class="py-3 pr-4">科目</th>
+                                <th class="py-3 pr-4">教材</th>
+                                <th class="py-3 pr-4">閱讀範圍</th>
+                                <th class="py-3 pr-4">頁數</th>
+                                <th class="py-3">操作</th>
                             </tr>
-
                         </thead>
-
-                        <tbody id="schedule-list">
-
-                        </tbody>
-
+                        <tbody id="schedule-list"></tbody>
                     </table>
-
                 </div>
-
             </section>
-
         </div>
-
     </div>
-
 </main>
 
-
 <!-- ================= JAVASCRIPT ================= -->
-
 <script type="module">
-
-import {
-    initializeApp
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    signOut,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import {
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-
-/* =========================================================
-   FIREBASE
-========================================================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-
     apiKey: "請填入你的 Firebase API KEY",
-
     authDomain: "study-scheduler-21d31.firebaseapp.com",
-
     projectId: "study-scheduler-21d31",
-
     storageBucket: "study-scheduler-21d31.firebasestorage.app",
-
     messagingSenderId: "397621309129",
-
     appId: "1:397621309129:web:8c2893f7bac4429ff7e718",
-
     measurementId: "G-LSC7WV46Y9"
-
 };
-
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
-
 const db = getFirestore(app);
-
 const provider = new GoogleAuthProvider();
 
-
-/* =========================================================
-   STATE
-========================================================= */
-
 let currentUser = null;
-
-let userData = {
-
-    subjects: [],
-
-    schedules: []
-
-};
-
+let userData = { subjects: [], schedules: [] };
 let pendingMaterials = [];
 
-
-/* =========================================================
-   ID
-========================================================= */
-
 function makeId() {
-
-    return Date.now() +
-        Math.floor(Math.random() * 1000000);
-
+    return Date.now() + Math.floor(Math.random() * 1000000);
 }
 
-
-/* =========================================================
-   HTML ESCAPE
-========================================================= */
-
 function escapeHtml(value) {
-
     return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-
 }
-
-
-/* =========================================================
-   日期時間
-========================================================= */
 
 function updateDateTime() {
-
     const now = new Date();
-
-    const text = now.toLocaleString(
-        "zh-TW",
-        {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            weekday: "long",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-        }
-    );
-
-    document.getElementById(
-        "current-datetime"
-    ).textContent = text;
-
+    const text = now.toLocaleString("zh-TW", {
+        year: "numeric", month: "2-digit", day: "2-digit",
+        weekday: "long", hour: "2-digit", minute: "2-digit", second: "2-digit"
+    });
+    const dtEl = document.getElementById("current-datetime");
+    if (dtEl) dtEl.textContent = text;
 }
-
 setInterval(updateDateTime, 1000);
-
 updateDateTime();
 
-
-/* =========================================================
-   NORMALIZE 舊資料
-========================================================= */
-
 function normalizeUserData(data) {
-
     const result = {
-
-        subjects: Array.isArray(data?.subjects)
-            ? data.subjects
-            : [],
-
-        schedules: Array.isArray(data?.schedules)
-            ? data.schedules
-            : []
-
+        subjects: Array.isArray(data?.subjects) ? data.subjects : [],
+        schedules: Array.isArray(data?.schedules) ? data.schedules : []
     };
-
-
     result.subjects = result.subjects.map(subject => {
-
-        /*
-         * 舊版本只有：
-         * target
-         * current
-         * fileName
-         *
-         * 自動轉成新的 materials
-         */
-
-        if (
-            !Array.isArray(subject.materials) ||
-            subject.materials.length === 0
-        ) {
-
-            subject.materials = [
-
-                {
-
-                    id: makeId(),
-
-                    fileName:
-                        subject.fileName ||
-                        "教材",
-
-                    target:
-                        Number(subject.target) || 0,
-
-                    current:
-                        Number(subject.current) || 0
-
-                }
-
-            ];
-
+        if (!Array.isArray(subject.materials) || subject.materials.length === 0) {
+            subject.materials = [{
+                id: makeId(),
+                fileName: subject.fileName || "教材",
+                target: Number(subject.target) || 0,
+                current: Number(subject.current) || 0
+            }];
         }
-
-
-        subject.materials =
-            subject.materials.map(material => ({
-
-                id:
-                    material.id ??
-                    makeId(),
-
-                fileName:
-                    material.fileName ||
-                    "教材",
-
-                target:
-                    Number(material.target) || 0,
-
-                current:
-                    Math.min(
-                        Number(material.current) || 0,
-                        Number(material.target) || 0
-                    )
-
-            }));
-
-
+        subject.materials = subject.materials.map(material => ({
+            id: material.id ?? makeId(),
+            fileName: material.fileName || "教材",
+            target: Number(material.target) || 0,
+            current: Math.min(Number(material.current) || 0, Number(material.target) || 0)
+        }));
         return subject;
-
     });
-
-
     return result;
-
 }
-
-
-/* =========================================================
-   FIRESTORE 儲存
-========================================================= */
 
 async function saveUserData() {
-
-    if (!currentUser) {
-
-        return false;
-
-    }
-
-
+    if (!currentUser) return false;
     try {
-
-        const docRef = doc(
-            db,
-            "schedules",
-            currentUser.uid
-        );
-
-
-        await setDoc(
-            docRef,
-            {
-
-                subjects:
-                    userData.subjects || [],
-
-                schedules:
-                    userData.schedules || []
-
-            }
-        );
-
-
+        const docRef = doc(db, "schedules", currentUser.uid);
+        await setDoc(docRef, {
+            subjects: userData.subjects || [],
+            schedules: userData.schedules || []
+        });
         return true;
-
     } catch (error) {
-
         console.error(error);
-
-        alert(
-            "儲存失敗：\n" +
-            error.message
-        );
-
+        alert("儲存失敗：\n" + error.message);
         return false;
-
     }
-
 }
-
-
-/* =========================================================
-   FIRESTORE 載入
-========================================================= */
 
 async function loadUserData() {
-
-    if (!currentUser) {
-
-        return;
-
-    }
-
-
+    if (!currentUser) return;
     try {
-
-        const docRef = doc(
-            db,
-            "schedules",
-            currentUser.uid
-        );
-
-        const snapshot =
-            await getDoc(docRef);
-
-
+        const docRef = doc(db, "schedules", currentUser.uid);
+        const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
-
-            userData =
-                normalizeUserData(
-                    snapshot.data()
-                );
-
+            userData = normalizeUserData(snapshot.data());
         } else {
-
-            userData = {
-
-                subjects: [],
-
-                schedules: []
-
-            };
-
+            userData = { subjects: [], schedules: [] };
         }
-
-
         renderApp();
-
     } catch (error) {
-
         console.error(error);
-
-        alert(
-            "載入資料失敗：\n" +
-            error.message
-        );
-
+        alert("載入資料失敗：\n" + error.message);
     }
-
 }
 
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
-document
-    .getElementById("login-btn")
-    .addEventListener(
-        "click",
-        async () => {
-
-            try {
-
-                await signInWithPopup(
-                    auth,
-                    provider
-                );
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "登入失敗：\n" +
-                    error.message
-                );
-
-            }
-
-        }
-    );
-
-
-/* =========================================================
-   LOGOUT
-========================================================= */
-
-document
-    .getElementById("logout-btn")
-    .addEventListener(
-        "click",
-        async () => {
-
-            await signOut(auth);
-
-        }
-    );
-
-
-/* =========================================================
-   AUTH
-========================================================= */
-
-onAuthStateChanged(
-    auth,
-    async user => {
-
-        currentUser = user;
-
-
-        if (user) {
-
-            document
-                .getElementById("login-message")
-                .classList.add("hidden");
-
-
-            document
-                .getElementById("app")
-                .classList.remove("hidden");
-
-
-            document
-                .getElementById("login-btn")
-                .classList.add("hidden");
-
-
-            document
-                .getElementById("logout-btn")
-                .classList.remove("hidden");
-
-
-            document
-                .getElementById("user-name")
-                .textContent =
-                user.displayName ||
-                user.email ||
-                "已登入";
-
-
-            await loadUserData();
-
-
-        } else {
-
-            document
-                .getElementById("login-message")
-                .classList.remove("hidden");
-
-
-            document
-                .getElementById("app")
-                .classList.add("hidden");
-
-
-            document
-                .getElementById("login-btn")
-                .classList.remove("hidden");
-
-
-            document
-                .getElementById("logout-btn")
-                .classList.add("hidden");
-
-
-            document
-                .getElementById("user-name")
-                .textContent =
-                "尚未登入";
-
-        }
-
+document.getElementById("login-btn").addEventListener("click", async () => {
+    try {
+        await signInWithPopup(auth, provider);
+    } catch (error) {
+        console.error(error);
+        alert("登入失敗：\n" + error.message);
     }
-);
+});
 
+document.getElementById("logout-btn").addEventListener("click", async () => {
+    await signOut(auth);
+});
 
-/* =========================================================
-   PDF 選擇
-========================================================= */
-
-const materialFiles =
-    document.getElementById(
-        "material-files"
-    );
-
-
-materialFiles.addEventListener(
-    "change",
-    async event => {
-
-        const files =
-            Array.from(
-                event.target.files || []
-            );
-
-
-        pendingMaterials = [];
-
-        renderPendingMaterials();
-
-
-        if (files.length === 0) {
-
-            return;
-
-        }
-
-
-        const preview =
-            document.getElementById(
-                "material-preview"
-            );
-
-
-        preview.innerHTML = `
-
-            <div class="bg-gray-100
-                        rounded-lg
-                        p-3
-                        text-sm">
-
-                <i class="fa-solid fa-spinner fa-spin mr-2"></i>
-
-                正在分析 ${files.length} 份 PDF...
-
-            </div>
-
-        `;
-
-
-        for (
-            let i = 0;
-            i < files.length;
-            i++
-        ) {
-
-            const file = files[i];
-
-
-            if (
-                file.type !== "application/pdf" &&
-                !file.name
-                    .toLowerCase()
-                    .endsWith(".pdf")
-            ) {
-
-                alert(
-                    `${file.name} 不是 PDF 檔案`
-                );
-
-                continue;
-
-            }
-
-
-            try {
-
-                const arrayBuffer =
-                    await file.arrayBuffer();
-
-
-                const pdf =
-                    await pdfjsLib
-                        .getDocument({
-                            data: arrayBuffer
-                        })
-                        .promise;
-
-
-                const pageCount =
-                    pdf.numPages;
-
-
-                pendingMaterials.push({
-
-                    id: makeId(),
-
-                    fileName: file.name,
-
-                    target: pageCount,
-
-                    current: 0
-
-                });
-
-
-                if (pdf.destroy) {
-
-                    await pdf.destroy();
-
-                }
-
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    `無法讀取：${file.name}\n\n` +
-                    "請確認 PDF 檔案是否正常。"
-                );
-
-            }
-
-        }
-
-
-        renderPendingMaterials();
-
+onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    if (user) {
+        document.getElementById("login-message").classList.add("hidden");
+        document.getElementById("app").classList.remove("hidden");
+        document.getElementById("login-btn").classList.add("hidden");
+        document.getElementById("logout-btn").classList.remove("hidden");
+        document.getElementById("user-name").textContent = user.displayName || user.email || "已登入";
+        await loadUserData();
+    } else {
+        document.getElementById("login-message").classList.remove("hidden");
+        document.getElementById("app").classList.add("hidden");
+        document.getElementById("login-btn").classList.remove("hidden");
+        document.getElementById("logout-btn").classList.add("hidden");
+        document.getElementById("user-name").textContent = "尚未登入";
     }
-);
+});
 
+// PDF 檔案選擇處理
+const materialFiles = document.getElementById("material-files");
+materialFiles.addEventListener("change", async event => {
+    const files = Array.from(event.target.files || []);
+    pendingMaterials = [];
+    renderPendingMaterials();
+    if (files.length === 0) return;
 
-/* =========================================================
-   顯示待建立教材
-========================================================= */
+    const preview = document.getElementById("material-preview");
+    preview.innerHTML = `<div class="bg-gray-100 rounded-lg p-3 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在分析 ${files.length} 份 PDF...</div>`;
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+            alert(`${file.name} 不是 PDF 檔案`);
+            continue;
+        }
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const pageCount = pdf.numPages;
+            pendingMaterials.push({
+                id: makeId(),
+                fileName: file.name,
+                target: pageCount,
+                current: 0
+            });
+            if (pdf.destroy) await pdf.destroy();
+        } catch (error) {
+            console.error(error);
+            alert(`無法讀取：${file.name}\n\n請確認 PDF 檔案是否正常。`);
+        }
+    }
+    renderPendingMaterials();
+});
 
 function renderPendingMaterials() {
-
-    const container =
-        document.getElementById(
-            "material-preview"
-        );
-
-
-    if (
-        pendingMaterials.length === 0
-    ) {
-
+    const container = document.getElementById("material-preview");
+    if (pendingMaterials.length === 0) {
         container.innerHTML = "";
-
         return;
-
     }
-
-
     container.innerHTML = `
-
-        <div class="text-sm
-                    font-medium
-                    mb-2">
-
-            已選擇教材
-
-        </div>
-
-        ${
-            pendingMaterials
-                .map(
-                    (material, index) => `
-
-                    <div class="flex
-                                items-center
-                                justify-between
-                                border
-                                rounded-lg
-                                p-3
-                                bg-gray-50">
-
-                        <div class="min-w-0">
-
-                            <div class="font-medium truncate">
-
-                                <i class="fa-solid fa-file-pdf mr-2"></i>
-
-                                ${escapeHtml(
-                                    material.fileName
-                                )}
-
-                            </div>
-
-                            <div class="text-xs
-                                        text-gray-500
-                                        mt-1">
-
-                                共 ${material.target} 頁
-
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            type="button"
-                            onclick="removePendingMaterial(${index})"
-                            class="text-red-500
-                                   hover:text-red-700
-                                   ml-3">
-
-                            <i class="fa-solid fa-trash"></i>
-
-                        </button>
-
-                    </div>
-
-                `
-                )
-                .join("")
-        }
-
-    `;
-
-}
-
-
-window.removePendingMaterial =
-    function(index) {
-
-        pendingMaterials.splice(
-            index,
-            1
-        );
-
-        renderPendingMaterials();
-
-    };
-
-
-/* =========================================================
-   建立科目
-========================================================= */
-
-document
-    .getElementById("subject-form")
-    .addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-
-            const name =
-                document
-                    .getElementById("sub-name")
-                    .value
-                    .trim();
-
-
-            const examDate =
-                document
-                    .getElementById("sub-exam-date")
-                    .value;
-
-
-            if (!name) {
-
-                alert("請輸入科目名稱");
-
-                return;
-
-            }
-
-
-            if (
-                pendingMaterials.length === 0
-            ) {
-
-                alert(
-                    "請至少選擇一份 PDF 教材"
-                );
-
-                return;
-
-            }
-
-
-            const subject = {
-
-                id: makeId(),
-
-                name,
-
-                examDate,
-
-                materials:
-                    pendingMaterials.map(
-                        material => ({
-
-                            id: material.id,
-
-                            fileName:
-                                material.fileName,
-
-                            target:
-                                material.target,
-
-                            current: 0
-
-                        })
-                    )
-
-            };
-
-
-            userData.subjects.push(
-                subject
-            );
-
-
-            const saved =
-                await saveUserData();
-
-
-            if (!saved) {
-
-                userData.subjects.pop();
-
-                return;
-
-            }
-
-
-            document
-                .getElementById("subject-form")
-                .reset();
-
-
-            pendingMaterials = [];
-
-            renderPendingMaterials();
-
-            renderApp();
-
-
-            alert(
-                "科目建立成功！"
-            );
-
-        }
-    );
-
-
-/* =========================================================
-   刪除科目
-========================================================= */
-
-window.deleteSubject =
-    async function(subjectId) {
-
-        const subject =
-            userData.subjects.find(
-                s => s.id == subjectId
-            );
-
-
-        if (!subject) {
-
-            return;
-
-        }
-
-
-        if (
-            !confirm(
-                `確定要刪除「${subject.name}」嗎？\n\n` +
-                "該科目的教材與讀書紀錄也會被刪除。"
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        const oldSubjects =
-            [...userData.subjects];
-
-
-        const oldSchedules =
-            [...userData.schedules];
-
-
-        userData.subjects =
-            userData.subjects.filter(
-                s => s.id != subjectId
-            );
-
-
-        userData.schedules =
-            userData.schedules.filter(
-                s => s.subjectId != subjectId
-            );
-
-
-        const saved =
-            await saveUserData();
-
-
-        if (!saved) {
-
-            userData.subjects =
-                oldSubjects;
-
-            userData.schedules =
-                oldSchedules;
-
-            return;
-
-        }
-
-
-        renderApp();
-
-    };
-
-
-/* =========================================================
-   刪除教材
-========================================================= */
-
-window.deleteMaterial =
-    async function(
-        subjectId,
-        materialId
-    ) {
-
-        const subject =
-            userData.subjects.find(
-                s => s.id == subjectId
-            );
-
-
-        if (!subject) {
-
-            return;
-
-        }
-
-
-        if (
-            subject.materials.length <= 1
-        ) {
-
-            alert(
-                "一個科目至少要保留一份教材。\n" +
-                "如果不需要這個科目，可以直接刪除科目。"
-            );
-
-            return;
-
-        }
-
-
-        const material =
-            subject.materials.find(
-                m => m.id == materialId
-            );
-
-
-        if (!material) {
-
-            return;
-
-        }
-
-
-        if (
-            !confirm(
-                `確定要刪除「${material.fileName}」嗎？`
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        subject.materials =
-            subject.materials.filter(
-                m => m.id != materialId
-            );
-
-
-        await saveUserData();
-
-        renderApp();
-
-    };
-
-
-/* =========================================================
-   手動修改教材進度
-========================================================= */
-
-window.updateMaterialProgress =
-    async function(
-        subjectId,
-        materialId,
-        value
-    ) {
-
-        const subject =
-            userData.subjects.find(
-                s => s.id == subjectId
-            );
-
-
-        if (!subject) {
-
-            return;
-
-        }
-
-
-        const material =
-            subject.materials.find(
-                m => m.id == materialId
-            );
-
-
-        if (!material) {
-
-            return;
-
-        }
-
-
-        let current =
-            Number(value);
-
-
-        if (
-            !Number.isFinite(current)
-        ) {
-
-            current = 0;
-
-        }
-
-
-        current =
-            Math.max(
-                0,
-                Math.min(
-                    current,
-                    material.target
-                )
-            );
-
-
-        material.current =
-            current;
-
-
-        await saveUserData();
-
-        renderApp();
-
-    };
-
-
-/* =========================================================
-   排程科目變更
-========================================================= */
-
-document
-    .getElementById("schedule-subject")
-    .addEventListener(
-        "change",
-        () => {
-
-            updateScheduleMaterialOptions();
-
-        }
-    );
-
-
-/* =========================================================
-   排程教材選擇
-========================================================= */
-
-document
-    .getElementById("schedule-material")
-    .addEventListener(
-        "change",
-        () => {
-
-            updateReadingInfo();
-
-        }
-    );
-
-
-/* =========================================================
-   更新教材選項
-========================================================= */
-
-function updateScheduleMaterialOptions(
-    keepValue = ""
-) {
-
-    const subjectId =
-        document
-            .getElementById("schedule-subject")
-            .value;
-
-
-    const materialSelect =
-        document.getElementById(
-            "schedule-material"
-        );
-
-
-    materialSelect.innerHTML = "";
-
-
-    if (!subjectId) {
-
-        materialSelect.innerHTML = `
-
-            <option value="">
-                請先選擇科目
-            </option>
-
-        `;
-
-        updateReadingInfo();
-
-        return;
-
-    }
-
-
-    const subject =
-        userData.subjects.find(
-            s => s.id == subjectId
-        );
-
-
-    if (
-        !subject ||
-        !subject.materials ||
-        subject.materials.length === 0
-    ) {
-
-        materialSelect.innerHTML = `
-
-            <option value="">
-                此科目沒有教材
-            </option>
-
-        `;
-
-        updateReadingInfo();
-
-        return;
-
-    }
-
-
-    materialSelect.innerHTML = `
-
-        <option value="">
-            請選擇教材
-        </option>
-
-    `;
-
-
-    subject.materials.forEach(
-        material => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                material.id;
-
-
-            option.textContent =
-                `${material.fileName} (${material.current}/${material.target}頁)`;
-
-
-            materialSelect.appendChild(
-                option
-            );
-
-        }
-    );
-
-
-    if (keepValue) {
-
-        const exists =
-            Array.from(
-                materialSelect.options
-            ).some(
-                option =>
-                    String(option.value) ===
-                    String(keepValue)
-            );
-
-
-        if (exists) {
-
-            materialSelect.value =
-                keepValue;
-
-        }
-
-    }
-
-
-    updateReadingInfo();
-
-}
-
-
-/* =========================================================
-   閱讀資訊
-========================================================= */
-
-function getSelectedMaterial() {
-
-    const subjectId =
-        document
-            .getElementById("schedule-subject")
-            .value;
-
-
-    const materialId =
-        document
-            .getElementById("schedule-material")
-            .value;
-
-
-    const subject =
-        userData.subjects.find(
-            s => s.id == subjectId
-        );
-
-
-    if (!subject) {
-
-        return null;
-
-    }
-
-
-    return subject.materials.find(
-        m => m.id == materialId
-    ) || null;
-
-}
-
-
-function updateReadingInfo() {
-
-    const info =
-        document.getElementById(
-            "reading-info"
-        );
-
-
-    const material =
-        getSelectedMaterial();
-
-
-    if (!material) {
-
-        info.classList.add("hidden");
-
-        info.innerHTML = "";
-
-        return;
-
-    }
-
-
-    const remaining =
-        Math.max(
-            0,
-            material.target -
-            material.current
-        );
-
-
-    const percent =
-        material.target > 0
-            ? Math.round(
-                material.current /
-                material.target *
-                100
-              )
-            : 0;
-
-
-    info.classList.remove(
-        "hidden"
-    );
-
-
-    info.innerHTML = `
-
-        <div class="font-medium mb-1">
-
-            📄 ${escapeHtml(
-                material.fileName
-            )}
-
-        </div>
-
-        <div class="text-gray-600">
-
-            已讀：
-            <b>${material.current}</b>
-            /
-            ${material.target} 頁
-
-            <span class="mx-2">｜</span>
-
-            剩餘：
-            <b>${remaining}</b>
-            頁
-
-            <span class="mx-2">｜</span>
-
-            進度：
-            <b>${percent}%</b>
-
-        </div>
-
-    `;
-
-
-    calculateReadingPages();
-
-}
-
-
-/* =========================================================
-   計算本次閱讀頁數
-========================================================= */
-
-document
-    .getElementById("start-page")
-    .addEventListener(
-        "input",
-        calculateReadingPages
-    );
-
-
-document
-    .getElementById("end-page")
-    .addEventListener(
-        "input",
-        calculateReadingPages
-    );
-
-
-function calculateReadingPages() {
-
-    const start =
-        Number(
-            document
-                .getElementById("start-page")
-                .value
-        );
-
-
-    const end =
-        Number(
-            document
-                .getElementById("end-page")
-                .value
-        );
-
-
-    const box =
-        document.getElementById(
-            "reading-count"
-        );
-
-
-    const number =
-        document.getElementById(
-            "reading-count-number"
-        );
-
-
-    if (
-        start >= 1 &&
-        end >= start
-    ) {
-
-        const pages =
-            end - start + 1;
-
-
-        box.classList.remove(
-            "hidden"
-        );
-
-
-        number.textContent =
-            `${pages} 頁`;
-
-    } else {
-
-        box.classList.add(
-            "hidden"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   新增讀書紀錄
-========================================================= */
-
-document
-    .getElementById("schedule-form")
-    .addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-
-            const date =
-                document
-                    .getElementById("schedule-date")
-                    .value;
-
-
-            const time =
-                document
-                    .getElementById("schedule-time")
-                    .value;
-
-
-            const subjectId =
-                document
-                    .getElementById("schedule-subject")
-                    .value;
-
-
-            const materialId =
-                document
-                    .getElementById("schedule-material")
-                    .value;
-
-
-            const startPage =
-                Number(
-                    document
-                        .getElementById("start-page")
-                        .value
-                );
-
-
-            const endPage =
-                Number(
-                    document
-                        .getElementById("end-page")
-                        .value
-                );
-
-
-            if (!subjectId) {
-
-                alert("請選擇科目");
-
-                return;
-
-            }
-
-
-            if (!materialId) {
-
-                alert("請選擇教材");
-
-                return;
-
-            }
-
-
-            const subject =
-                userData.subjects.find(
-                    s => s.id == subjectId
-                );
-
-
-            if (!subject) {
-
-                return;
-
-            }
-
-
-            const material =
-                subject.materials.find(
-                    m => m.id == materialId
-                );
-
-
-            if (!material) {
-
-                return;
-
-            }
-
-
-            if (
-                !Number.isFinite(startPage) ||
-                !Number.isFinite(endPage)
-            ) {
-
-                alert(
-                    "請輸入開始頁與結束頁"
-                );
-
-                return;
-
-            }
-
-
-            if (startPage < 1) {
-
-                alert(
-                    "開始頁不能小於 1"
-                );
-
-                return;
-
-            }
-
-
-            if (endPage < startPage) {
-
-                alert(
-                    "結束頁不能小於開始頁"
-                );
-
-                return;
-
-            }
-
-
-            if (
-                endPage >
-                material.target
-            ) {
-
-                alert(
-                    `這份教材只有 ${material.target} 頁。`
-                );
-
-                return;
-
-            }
-
-
-            const pagesRead =
-                endPage -
-                startPage +
-                1;
-
-
-            /*
-             * 用「目前讀到哪一頁」計算進度。
-             *
-             * 例如：
-             *
-             * 原本已讀到 19
-             * 本次 20～35
-             * → 進度變成 35
-             *
-             * 如果之後重新讀 20～25
-             * → 不會把進度重複增加。
-             */
-
-            material.current =
-                Math.max(
-                    material.current,
-                    endPage
-                );
-
-
-            const schedule = {
-
-                id: makeId(),
-
-                date,
-
-                time,
-
-                subjectId,
-
-                materialId,
-
-                startPage,
-
-                endPage,
-
-                pagesRead,
-
-                range:
-                    `p.${startPage}-p.${endPage}`,
-
-                duration:
-                    `${pagesRead}頁`
-
-            };
-
-
-            userData.schedules.unshift(
-                schedule
-            );
-
-
-            const saved =
-                await saveUserData();
-
-
-            if (!saved) {
-
-                userData.schedules.shift();
-
-                return;
-
-            }
-
-
-            document
-                .getElementById(
-                    "schedule-form"
-                )
-                .reset();
-
-
-            document
-                .getElementById(
-                    "schedule-date"
-                )
-                .value =
-                new Date()
-                    .toISOString()
-                    .split("T")[0];
-
-
-            updateScheduleMaterialOptions();
-
-
-            renderApp();
-
-        }
-    );
-
-
-/* =========================================================
-   刪除讀書紀錄
-========================================================= */
-
-window.deleteSchedule =
-    async function(scheduleId) {
-
-        const oldSchedules =
-            [...userData.schedules];
-
-
-        userData.schedules =
-            userData.schedules.filter(
-                s => s.id != scheduleId
-            );
-
-
-        const saved =
-            await saveUserData();
-
-
-        if (!saved) {
-
-            userData.schedules =
-                oldSchedules;
-
-            return;
-
-        }
-
-
-        renderApp();
-
-    };
-
-
-/* =========================================================
-   TIMER
-========================================================= */
-
-let timerSeconds = 0;
-
-let timerInterval = null;
-
-let timerRunning = false;
-
-
-function formatTime(seconds) {
-
-    const h =
-        Math.floor(
-            seconds / 3600
-        );
-
-
-    const m =
-        Math.floor(
-            (seconds % 3600) / 60
-        );
-
-
-    const s =
-        seconds % 60;
-
-
-    return [
-
-        h,
-        m,
-        s
-
-    ]
-    .map(
-        value =>
-            String(value)
-                .padStart(2, "0")
-    )
-    .join(":");
-
-}
-
-
-document
-    .getElementById("timer-start")
-    .addEventListener(
-        "click",
-        () => {
-
-            const subjectId =
-                document
-                    .getElementById(
-                        "timer-subject"
-                    )
-                    .value;
-
-
-            if (!subjectId) {
-
-                alert(
-                    "請先選擇科目"
-                );
-
-                return;
-
-            }
-
-
-            if (timerRunning) {
-
-                return;
-
-            }
-
-
-            timerRunning = true;
-
-            timerSeconds = 0;
-
-
-            document
-                .getElementById(
-                    "timer-start"
-                )
-                .classList.add(
-                    "hidden"
-                );
-
-
-            document
-                .getElementById(
-                    "timer-stop"
-                )
-                .classList.remove(
-                    "hidden"
-                );
-
-
-            document
-                .getElementById(
-                    "timer-status"
-                )
-                .textContent =
-                "正在讀書";
-
-
-            timerInterval =
-                setInterval(
-                    () => {
-
-                        timerSeconds++;
-
-
-                        document
-                            .getElementById(
-                                "timer-display"
-                            )
-                            .textContent =
-                            formatTime(
-                                timerSeconds
-                            );
-
-                    },
-                    1000
-                );
-
-        }
-    );
-
-
-document
-    .getElementById("timer-stop")
-    .addEventListener(
-        "click",
-        async () => {
-
-            if (!timerRunning) {
-
-                return;
-
-            }
-
-
-            clearInterval(
-                timerInterval
-            );
-
-
-            timerRunning = false;
-
-
-            const subjectId =
-                document
-                    .getElementById(
-                        "timer-subject"
-                    )
-                    .value;
-
-
-            const now =
-                new Date();
-
-
-            const schedule = {
-
-                id: makeId(),
-
-                date:
-                    now.toISOString()
-                       .split("T")[0],
-
-                time:
-                    now.toTimeString()
-                       .slice(0, 5),
-
-                subjectId,
-
-                materialId: "",
-
-                startPage: 0,
-
-                endPage: 0,
-
-                pagesRead: 0,
-
-                range: "",
-
-                duration:
-                    formatTime(
-                        timerSeconds
-                    )
-
-            };
-
-
-            userData.schedules.unshift(
-                schedule
-            );
-
-
-            await saveUserData();
-
-
-            document
-                .getElementById(
-                    "timer-start"
-                )
-                .classList.remove(
-                    "hidden"
-                );
-
-
-            document
-                .getElementById(
-                    "timer-stop"
-                )
-                .classList.add(
-                    "hidden"
-                );
-
-
-            document
-                .getElementById(
-                    "timer-status"
-                )
-                .textContent =
-                "已完成";
-
-
-            timerSeconds = 0;
-
-
-            document
-                .getElementById(
-                    "timer-display"
-                )
-                .textContent =
-                "00:00:00";
-
-
-            renderApp();
-
-        }
-    );
-
-
-/* =========================================================
-   RENDER APP
-========================================================= */
-
-function renderApp() {
-
-    renderSubjects();
-
-    renderSelectors();
-
-    renderSchedules();
-
-    renderKPI();
-
-}
-
-
-/* =========================================================
-   KPI
-========================================================= */
-
-function renderKPI() {
-
-    let totalSubjects =
-        userData.subjects.length;
-
-
-    let totalTarget = 0;
-
-    let totalCurrent = 0;
-
-
-    userData.subjects.forEach(
-        subject => {
-
-            subject.materials.forEach(
-                material => {
-
-                    totalTarget +=
-                        Number(
-                            material.target
-                        ) || 0;
-
-
-                    totalCurrent +=
-                        Number(
-                            material.current
-                        ) || 0;
-
-                }
-            );
-
-        }
-    );
-
-
-    const average =
-        totalTarget > 0
-            ? Math.round(
-                totalCurrent /
-                totalTarget *
-                100
-              )
-            : 0;
-
-
-    const totalSubjectsEl =
-        document.getElementById(
-            "kpi-total-subjects"
-        );
-
-
-    const completedPagesEl =
-        document.getElementById(
-            "kpi-completed-pages-number"
-        );
-
-
-    const avgProgressEl =
-        document.getElementById(
-            "kpi-avg-progress"
-        );
-
-
-    if (totalSubjectsEl) {
-
-        totalSubjectsEl.textContent =
-            totalSubjects;
-
-    }
-
-
-    if (completedPagesEl) {
-
-        completedPagesEl.textContent =
-            totalCurrent;
-
-    }
-
-
-    if (avgProgressEl) {
-
-        avgProgressEl.textContent =
-            `${average}%`;
-
-    }
-
-}
-
-
-/* =========================================================
-   科目列表
-========================================================= */
-
-function renderSubjects() {
-
-    const container =
-        document.getElementById(
-            "subject-list"
-        );
-
-
-    if (
-        userData.subjects.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="text-center
-                        text-gray-400
-                        py-8">
-
-                尚未建立科目
-
+        <div class="text-sm font-medium mb-2">已選擇教材</div>
+        ${pendingMaterials.map((material, index) => `
+            <div class="flex items-center justify-between border rounded-lg p-3 bg-gray-50">
+                <div class="min-w-0">
+                    <div class="font-medium truncate"><i class="fa-solid fa-file-pdf mr-2"></i>${escapeHtml(material.fileName)}</div>
+                    <div class="text-xs text-gray-500 mt-1">共 ${material.target} 頁</div>
+                </div>
+                <button type="button" onclick="removePendingMaterial(${index})" class="text-red-500 hover:text-red-700 ml-3">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        userData.subjects
-            .map(
-                subject => {
-
-                    let totalTarget = 0;
-
-                    let totalCurrent = 0;
-
-
-                    subject.materials
-                        .forEach(
-                            material => {
-
-                                totalTarget +=
-                                    material.target;
-
-                                totalCurrent +=
-                                    material.current;
-
-                            }
-                        );
-
-
-                    const subjectProgress =
-                        totalTarget > 0
-                            ? Math.round(
-                                totalCurrent /
-                                totalTarget *
-                                100
-                              )
-                            : 0;
-
-
-                    return `
-
-                        <div class="border
-                                    rounded-xl
-                                    p-4">
-
-                            <!-- 科目標題 -->
-
-                            <div class="flex
-                                        items-center
-                                        justify-between
-                                        mb-3">
-
-                                <div>
-
-                                    <div class="font-bold text-lg">
-
-                                        ${escapeHtml(
-                                            subject.name
-                                        )}
-
-                                    </div>
-
-                                    ${
-                                        subject.examDate
-                                            ? `
-                                                <div class="text-xs
-                                                            text-gray-500
-                                                            mt-1">
-
-                                                    考試：
-                                                    ${subject.examDate}
-
-                                                </div>
-                                              `
-                                            : ""
-                                    }
-
-                                </div>
-
-
-                                <div class="flex items-center gap-3">
-
-                                    <div class="text-sm
-                                                font-bold">
-
-                                        ${subjectProgress}%
-
-                                    </div>
-
-
-                                    <button
-                                        onclick="deleteSubject(${subject.id})"
-                                        class="text-red-500
-                                               hover:text-red-700">
-
-                                        <i class="fa-solid fa-trash"></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- 科目總進度 -->
-
-                            <div class="progress-bg mb-4">
-
-                                <div
-                                    class="progress-bar"
-                                    style="width:${subjectProgress}%">
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- 教材 -->
-
-                            <div class="space-y-3">
-
-                                ${
-                                    subject.materials
-                                        .map(
-                                            material => {
-
-                                                const remaining =
-                                                    Math.max(
-                                                        0,
-                                                        material.target -
-                                                        material.current
-                                                    );
-
-
-                                                const progress =
-                                                    material.target > 0
-                                                        ? Math.round(
-                                                            material.current /
-                                                            material.target *
-                                                            100
-                                                          )
-                                                        : 0;
-
-
-                                                return `
-
-                                                    <div class="bg-gray-50
-                                                                border
-                                                                rounded-lg
-                                                                p-3">
-
-                                                        <div class="flex
-                                                                    justify-between
-                                                                    items-start
-                                                                    gap-3">
-
-                                                            <div class="min-w-0">
-
-                                                                <div class="font-medium truncate">
-
-                                                                    <i class="fa-solid fa-file-pdf mr-2"></i>
-
-                                                                    ${escapeHtml(
-                                                                        material.fileName
-                                                                    )}
-
-                                                                </div>
-
-                                                                <div class="text-xs
-                                                                            text-gray-500
-                                                                            mt-1">
-
-                                                                    已讀
-                                                                    ${material.current}
-                                                                    /
-                                                                    ${material.target}
-                                                                    頁
-
-                                                                    ｜
-
-                                                                    剩餘
-                                                                    ${remaining}
-                                                                    頁
-
-                                                                </div>
-
-                                                            </div>
-
-
-                                                            <button
-                                                                onclick="deleteMaterial(${subject.id}, ${material.id})"
-                                                                class="text-gray-400
-                                                                       hover:text-red-500">
-
-                                                                <i class="fa-solid fa-xmark"></i>
-
-                                                            </button>
-
-                                                        </div>
-
-
-                                                        <div class="progress-bg mt-3">
-
-                                                            <div
-                                                                class="progress-bar"
-                                                                style="width:${progress}%">
-
-                                                            </div>
-
-                                                        </div>
-
-
-                                                        <div class="flex
-                                                                    items-center
-                                                                    justify-between
-                                                                    mt-3">
-
-                                                            <span class="text-xs text-gray-500">
-
-                                                                ${progress}%
-
-                                                            </span>
-
-
-                                                            <div class="flex items-center gap-2">
-
-                                                                <input
-                                                                    type="number"
-                                                                    min="0"
-                                                                    max="${material.target}"
-                                                                    value="${material.current}"
-                                                                    onchange="updateMaterialProgress(${subject.id}, ${material.id}, this.value)"
-                                                                    class="w-20 border
-                                                                           rounded-lg
-                                                                           px-2
-                                                                           py-1
-                                                                           text-sm">
-
-                                                                <span class="text-xs text-gray-500">
-                                                                    已讀頁
-                                                                </span>
-
-                                                            </div>
-
-                                                        </div>
-
-                                                    </div>
-
-                                                `;
-
-                                            }
-                                        )
-                                        .join("")
-                                }
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-/* =========================================================
-   SELECTORS
-========================================================= */
-
-function renderSelectors() {
-
-    const timerSelect =
-        document.getElementById(
-            "timer-subject"
-        );
-
-
-    const scheduleSubject =
-        document.getElementById(
-            "schedule-subject"
-        );
-
-
-    const oldScheduleSubject =
-        scheduleSubject.value;
-
-
-    const oldTimerSubject =
-        timerSelect.value;
-
-
-    const options = userData.subjects
-        .map(
-            subject => `
-
-                <option value="${subject.id}">
-
-                    ${escapeHtml(
-                        subject.name
-                    )}
-
-                </option>
-
-            `
-        )
-        .join("");
-
-
-    timerSelect.innerHTML = `
-
-        <option value="">
-            請選擇科目
-        </option>
-
-        ${options}
-
+        `).join("")}
     `;
-
-
-    scheduleSubject.innerHTML = `
-
-        <option value="">
-            請選擇科目
-        </option>
-
-        ${options}
-
-    `;
-
-
-    if (
-        userData.subjects.some(
-            s =>
-                String(s.id) ===
-                String(oldTimerSubject)
-        )
-    ) {
-
-        timerSelect.value =
-            oldTimerSubject;
-
-    }
-
-
-    if (
-        userData.subjects.some(
-            s =>
-                String(s.id) ===
-                String(oldScheduleSubject)
-        )
-    ) {
-
-        scheduleSubject.value =
-            oldScheduleSubject;
-
-    }
-
-
-    updateScheduleMaterialOptions();
-
 }
 
+window.removePendingMaterial = function(index) {
+    pendingMaterials.splice(index, 1);
+    renderPendingMaterials();
+};
 
-/* =========================================================
-   SCHEDULE LIST
-========================================================= */
+// 建立科目
+document.getElementById("subject-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const name = document.getElementById("sub-name").value.trim();
+    const examDate = document.getElementById("sub-exam-date").value;
 
-function renderSchedules() {
+    if (!name) { alert("請輸入科目名稱"); return; }
+    if (pendingMaterials.length === 0) { alert("請至少選擇一份 PDF 教材"); return; }
 
-    const container =
-        document.getElementById(
-            "schedule-list"
-        );
+    const subject = {
+        id: makeId(),
+        name,
+        examDate,
+        materials: pendingMaterials.map(material => ({
+            id: material.id,
+            fileName: material.fileName,
+            target: material.target,
+            current: 0
+        }))
+    };
 
+    userData.subjects.push(subject);
+    const saved = await saveUserData();
+    if (!saved) { userData.subjects.pop(); return; }
 
-    if (
-        userData.schedules.length === 0
-    ) {
+    document.getElementById("subject-form").reset();
+    pendingMaterials = [];
+    renderPendingMaterials();
+    renderApp();
+    alert("科目建立成功！");
+});
 
-        container.innerHTML = `
+// 刪除科目
+window.deleteSubject = async function(subjectId) {
+    const subject = userData.subjects.find(s => s.id == subjectId);
+    if (!subject) return;
+    if (!confirm(`確定要刪除「${subject.name}」嗎？\n\n該科目的教材與讀書紀錄也會被刪除。`)) return;
 
-            <tr>
+    const oldSubjects = [...userData.subjects];
+    const oldSchedules = [...userData.schedules];
 
-                <td colspan="6"
-                    class="text-center
-                           text-gray-400
-                           py-8">
+    userData.subjects = userData.subjects.filter(s => s.id != subjectId);
+    userData.schedules = userData.schedules.filter(s => s.subjectId != subjectId);
 
-                    尚無讀書紀錄
-
-                </td>
-
-            </tr>
-
-        `;
-
+    const saved = await saveUserData();
+    if (!saved) {
+        userData.subjects = oldSubjects;
+        userData.schedules = oldSchedules;
         return;
+    }
+    renderApp();
+};
 
+// 刪除教材
+window.deleteMaterial = async function(subjectId, materialId) {
+    const subject = userData.subjects.find(s => s.id == subjectId);
+    if (!subject) return;
+    if (subject.materials.length <= 1) {
+        alert("每個科目至少需要保留一份教材，若要刪除全部請直接刪除該科目。");
+        return;
+    }
+    if (!confirm("確定要刪除此教材嗎？")) return;
+
+    const oldMaterials = [...subject.materials];
+    subject.materials = subject.materials.filter(m => m.id != materialId);
+
+    const saved = await saveUserData();
+    if (!saved) {
+        subject.materials = oldMaterials;
+        return;
+    }
+    renderApp();
+};
+
+// 刪除讀書紀錄
+window.deleteSchedule = async function(scheduleId) {
+    const schedule = userData.schedules.find(s => s.id == scheduleId);
+    if (!schedule) return;
+    if (!confirm("確定要刪除這筆讀書紀錄嗎？")) return;
+
+    const oldSchedules = [...userData.schedules];
+    userData.schedules = userData.schedules.filter(s => s.id != scheduleId);
+
+    const saved = await saveUserData();
+    if (!saved) {
+        userData.schedules = oldSchedules;
+        return;
+    }
+    renderApp();
+};
+
+// 排程聯動選單邏輯
+const scheduleSubjectSelect = document.getElementById("schedule-subject");
+const scheduleMaterialSelect = document.getElementById("schedule-material");
+const readingInfo = document.getElementById("reading-info");
+
+scheduleSubjectSelect.addEventListener("change", () => {
+    const subjectId = scheduleSubjectSelect.value;
+    scheduleMaterialSelect.innerHTML = '<option value="">請選擇教材</option>';
+    readingInfo.classList.add("hidden");
+
+    if (!subjectId) return;
+    const subject = userData.subjects.find(s => s.id == subjectId);
+    if (subject && subject.materials) {
+        subject.materials.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m.id;
+            opt.textContent = `${m.fileName} (已讀 ${m.current}/${m.target} 頁)`;
+            scheduleMaterialSelect.appendChild(opt);
+        });
+    }
+});
+
+scheduleMaterialSelect.addEventListener("change", () => {
+    const subjectId = scheduleSubjectSelect.value;
+    const materialId = scheduleMaterialSelect.value;
+    if (!subjectId || !materialId) {
+        readingInfo.classList.add("hidden");
+        return;
+    }
+    const subject = userData.subjects.find(s => s.id == subjectId);
+    const material = subject?.materials.find(m => m.id == materialId);
+    if (material) {
+        readingInfo.classList.remove("hidden");
+        readingInfo.innerHTML = `目前進度：已讀 ${material.current} 頁 / 共 ${material.target} 頁`;
+        document.getElementById("start-page").value = material.current + 1;
+    }
+});
+
+// 計算本次閱讀頁數
+const startPageInput = document.getElementById("start-page");
+const endPageInput = document.getElementById("end-page");
+const readingCountDiv = document.getElementById("reading-count");
+const readingCountNumber = document.getElementById("reading-count-number");
+
+function updateReadingCount() {
+    const start = parseInt(startPageInput.value) || 0;
+    const end = parseInt(endPageInput.value) || 0;
+    if (end >= start && start > 0) {
+        const count = end - start + 1;
+        readingCountDiv.classList.remove("hidden");
+        readingCountNumber.textContent = `${count} 頁`;
+    } else {
+        readingCountDiv.classList.add("hidden");
+    }
+}
+startPageInput.addEventListener("input", updateReadingCount);
+endPageInput.addEventListener("input", updateReadingCount);
+
+// 儲存讀書紀錄表單
+document.getElementById("schedule-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const date = document.getElementById("schedule-date").value;
+    const time = document.getElementById("schedule-time").value;
+    const subjectId = scheduleSubjectSelect.value;
+    const materialId = scheduleMaterialSelect.value;
+    const startPage = parseInt(startPageInput.value);
+    const endPage = parseInt(endPageInput.value);
+
+    const subject = userData.subjects.find(s => s.id == subjectId);
+    const material = subject?.materials.find(m => m.id == materialId);
+
+    if (!subject || !material) { alert("請選擇正確的科目與教材"); return; }
+    if (endPage < startPage) { alert("結束頁不能小於開始頁"); return; }
+
+    const pagesRead = endPage - startPage + 1;
+    material.current = Math.max(material.current, endPage);
+
+    const schedule = {
+        id: makeId(),
+        date,
+        time,
+        subjectId,
+        subjectName: subject.name,
+        materialId,
+        fileName: material.fileName,
+        startPage,
+        endPage,
+        pagesRead
+    };
+
+    userData.schedules.push(schedule);
+    const saved = await saveUserData();
+    if (!saved) {
+        userData.schedules.pop();
+        return;
     }
 
+    document.getElementById("schedule-form").reset();
+    readingInfo.classList.add("hidden");
+    readingCountDiv.classList.add("hidden");
+    scheduleMaterialSelect.innerHTML = '<option value="">請先選擇科目</option>';
+    renderApp();
+    alert("讀書紀錄儲存成功！");
+});
 
-    container.innerHTML =
-        userData.schedules
-            .map(
-                schedule => {
+// 計時器邏輯
+let timerInterval = null;
+let secondsElapsed = 0;
+let timerActive = false;
+const timerDisplay = document.getElementById("timer-display");
+const timerStatus = document.getElementById("timer-status");
+const timerStartBtn = document.getElementById("timer-start");
+const timerStopBtn = document.getElementById("timer-stop");
+const timerSubjectSelect = document.getElementById("timer-subject");
 
-                    const subject =
-                        userData.subjects.find(
-                            s =>
-                                String(s.id) ===
-                                String(
-                                    schedule.subjectId
-                                )
-                        );
-
-
-                    let material = null;
-
-
-                    if (subject) {
-
-                        material =
-                            subject.materials.find(
-                                m =>
-                                    String(m.id) ===
-                                    String(
-                                        schedule.materialId
-                                    )
-                            );
-
-                    }
-
-
-                    const subjectName =
-                        subject
-                            ? subject.name
-                            : "已刪除科目";
-
-
-                    const materialName =
-                        material
-                            ? material.fileName
-                            : (
-                                schedule.materialId
-                                    ? "已刪除教材"
-                                    : "-"
-                              );
-
-
-                    const range =
-                        schedule.range ||
-                        "-";
-
-
-                    const pages =
-                        schedule.pagesRead ||
-                        0;
-
-
-                    return `
-
-                        <tr class="border-b">
-
-                            <td class="py-3 pr-4 whitespace-nowrap">
-
-                                ${escapeHtml(
-                                    schedule.date
-                                )}
-
-                                <div class="text-xs
-                                            text-gray-400">
-
-                                    ${escapeHtml(
-                                        schedule.time
-                                    )}
-
-                                </div>
-
-                            </td>
-
-
-                            <td class="py-3 pr-4">
-
-                                ${escapeHtml(
-                                    subjectName
-                                )}
-
-                            </td>
-
-
-                            <td class="py-3 pr-4
-                                       max-w-[180px]">
-
-                                <div class="truncate">
-
-                                    ${escapeHtml(
-                                        materialName
-                                    )}
-
-                                </div>
-
-                            </td>
-
-
-                            <td class="py-3 pr-4
-                                       whitespace-nowrap">
-
-                                ${escapeHtml(
-                                    range
-                                )}
-
-                            </td>
-
-
-                            <td class="py-3 pr-4
-                                       whitespace-nowrap">
-
-                                ${
-                                    pages > 0
-                                        ? `+${pages} 頁`
-                                        : (
-                                            schedule.duration ||
-                                            "-"
-                                          )
-                                }
-
-                            </td>
-
-
-                            <td class="py-3">
-
-                                <button
-                                    onclick="deleteSchedule(${schedule.id})"
-                                    class="text-red-500
-                                           hover:text-red-700">
-
-                                    <i class="fa-solid fa-trash"></i>
-
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                }
-            )
-            .join("");
-
+function formatTime(totalSeconds) {
+    const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const secs = String(totalSeconds % 60).padStart(2, '0');
+    return `${hrs}:${mins}:${secs}`;
 }
 
+timerStartBtn.addEventListener("click", () => {
+    const subId = timerSubjectSelect.value;
+    if (!subId) { alert("請先選擇計時的科目"); return; }
+    timerActive = true;
+    timerStartBtn.classList.add("hidden");
+    timerStopBtn.classList.remove("hidden");
+    timerSubjectSelect.disabled = true;
+    timerStatus.textContent = "計時中...";
 
-/* =========================================================
-   CSV 匯出
-========================================================= */
+    timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerDisplay.textContent = formatTime(secondsElapsed);
+    }, 1000);
+});
 
-document
-    .getElementById("export-csv")
-    .addEventListener(
-        "click",
-        () => {
+timerStopBtn.addEventListener("click", () => {
+    clearInterval(timerInterval);
+    timerActive = false;
+    timerStartBtn.classList.remove("hidden");
+    timerStopBtn.classList.add("hidden");
+    timerSubjectSelect.disabled = false;
+    timerStatus.textContent = `上次計時結束，共計 ${formatTime(secondsElapsed)}`;
+    secondsElapsed = 0;
+    timerDisplay.textContent = "00:00:00";
+});
 
-            if (
-                userData.schedules.length === 0
-            ) {
+// CSV 匯出功能
+document.getElementById("export-csv").addEventListener("click", () => {
+    if (userData.schedules.length === 0) { alert("目前沒有讀書紀錄可匯出"); return; }
+    let csvContent = "\uFEFF日期,時間,科目,教材,開始頁,結束頁,頁數\n";
+    userData.schedules.forEach(s => {
+        csvContent += `${s.date},${s.time || ''},"${s.subjectName}","${s.fileName}",${s.startPage},${s.endPage},${s.pagesRead}\n`;
+    });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `讀書紀錄_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+});
 
-                alert(
-                    "目前沒有讀書紀錄可以匯出。"
-                );
+// 渲染畫面總入口
+function renderApp() {
+    // 1. 更新計時器與排程的科目下拉選單
+    timerSubjectSelect.innerHTML = '<option value="">請選擇科目</option>';
+    scheduleSubjectSelect.innerHTML = '<option value="">請選擇科目</option>';
+    userData.subjects.forEach(s => {
+        const opt1 = document.createElement("option");
+        opt1.value = s.id;
+        opt1.textContent = s.name;
+        timerSubjectSelect.appendChild(opt1);
 
-                return;
+        const opt2 = document.createElement("option");
+        opt2.value = s.id;
+        opt2.textContent = s.name;
+        scheduleSubjectSelect.appendChild(opt2);
+    });
 
-            }
+    // 2. 計算 KPI 數據
+    let totalSubjects = userData.subjects.length;
+    let completedPages = 0;
+    let totalPages = 0;
 
-
-            const rows = [
-
-                [
-                    "日期",
-                    "時間",
-                    "科目",
-                    "教材",
-                    "開始頁",
-                    "結束頁",
-                    "閱讀頁數",
-                    "範圍",
-                    "計時"
-                ]
-
-            ];
-
-
-            userData.schedules
-                .forEach(
-                    schedule => {
-
-                        const subject =
-                            userData.subjects.find(
-                                s =>
-                                    String(s.id) ===
-                                    String(
-                                        schedule.subjectId
-                                    )
-                            );
-
-
-                        let material = null;
-
-
-                        if (subject) {
-
-                            material =
-                                subject.materials.find(
-                                    m =>
-                                        String(m.id) ===
-                                        String(
-                                            schedule.materialId
-                                        )
-                                );
-
-                        }
-
-
-                        rows.push([
-
-                            schedule.date || "",
-
-                            schedule.time || "",
-
-                            subject
-                                ? subject.name
-                                : "",
-
-                            material
-                                ? material.fileName
-                                : "",
-
-                            schedule.startPage || "",
-
-                            schedule.endPage || "",
-
-                            schedule.pagesRead || "",
-
-                            schedule.range || "",
-
-                            schedule.duration || ""
-
-                        ]);
-
-                    }
-                );
-
-
-            const csv =
-                rows
-                    .map(
-                        row =>
-                            row
-                                .map(
-                                    value =>
-                                        `"${String(value)
-                                            .replace(
-                                                /"/g,
-                                                '""'
-                                            )}"`
-                                )
-                                .join(",")
-                    )
-                    .join("\n");
-
-
-            const blob =
-                new Blob(
-                    [
-                        "\uFEFF" + csv
-                    ],
-                    {
-                        type:
-                            "text/csv;charset=utf-8;"
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const a =
-                document.createElement(
-                    "a"
-                );
-
-
-            a.href = url;
-
-            a.download =
-                "讀書紀錄.csv";
-
-            a.click();
-
-
-            URL.revokeObjectURL(
-                url
-            );
-
+    userData.subjects.forEach(s => {
+        if (s.materials) {
+            s.materials.forEach(m => {
+                completedPages += Number(m.current) || 0;
+                totalPages += Number(m.target) || 0;
+            });
         }
-    );
+    });
 
+    let avgProgress = totalPages > 0 ? Math.round((completedPages / totalPages) * 100) : 0;
 
-/* =========================================================
-   初始化日期
-========================================================= */
+    document.getElementById("kpi-total-subjects").textContent = totalSubjects;
+    document.getElementById("kpi-completed-pages-number").textContent = completedPages;
+    document.getElementById("kpi-avg-progress").textContent = `${avgProgress}%`;
 
-const today =
-    new Date()
-        .toISOString()
-        .split("T")[0];
+    // 3. 渲染左側「我的科目」列表
+    const subjectListEl = document.getElementById("subject-list");
+    if (userData.subjects.length === 0) {
+        subjectListEl.innerHTML = `<div class="text-center text-gray-400 py-8">尚未建立科目</div>`;
+    } else {
+        subjectListEl.innerHTML = userData.subjects.map(s => {
+            let sTotal = 0, sCurrent = 0;
+            s.materials.forEach(m => {
+                sTotal += m.target;
+                sCurrent += m.current;
+            });
+            let sProgress = sTotal > 0 ? Math.round((sCurrent / sTotal) * 100) : 0;
 
+            return `
+                <div class="border rounded-xl p-4 bg-white space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-base">${escapeHtml(s.name)}</h3>
+                            ${s.examDate ? `<div class="text-xs text-gray-500 mt-0.5">考試日期：${s.examDate}</div>` : ''}
+                        </div>
+                        <button onclick="deleteSubject('${s.id}')" class="text-gray-400 hover:text-red-600 text-sm">
+                            <i class="fa-solid fa-trash"></i> 刪除科目
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>進度：${sCurrent}/${sTotal} 頁</span>
+                            <span>${sProgress}%</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-bar" style="width: ${sProgress}%"></div>
+                        </div>
+                    </div>
+                    <div class="border-t pt-3 space-y-2">
+                        <div class="text-xs font-medium text-gray-600">教材清單：</div>
+                        ${s.materials.map(m => {
+                            let mProg = m.target > 0 ? Math.round((m.current / m.target) * 100) : 0;
+                            return `
+                                <div class="flex items-center justify-between text-xs bg-gray-50 p-2 rounded-lg">
+                                    <div class="truncate mr-2">
+                                        <i class="fa-solid fa-file-pdf mr-1 text-red-500"></i> ${escapeHtml(m.fileName)} (${m.current}/${m.target}頁)
+                                    </div>
+                                    <button onclick="deleteMaterial('${s.id}', '${m.id}')" class="text-gray-400 hover:text-red-600">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }).join("")}
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
 
-document
-    .getElementById(
-        "schedule-date"
-    )
-    .value = today;
-
-
-/* =========================================================
-   初始 Render
-========================================================= */
-
-renderApp();
-
+    // 4. 渲染右側「讀書紀錄」表格
+    const scheduleListEl = document.getElementById("schedule-list");
+    if (userData.schedules.length === 0) {
+        scheduleListEl.innerHTML = `<tr><td colspan="6" class="text-center text-gray-400 py-6">尚未有讀書紀錄</td></tr>`;
+    } else {
+        // 依照日期由新到舊排序
+        const sortedSchedules = [...userData.schedules].sort((a, b) => new Date(b.date) - new Date(a.date));
+        scheduleListEl.innerHTML = sortedSchedules.map(sch => `
+            <tr class="border-b">
+                <td class="py-3 pr-4">${sch.date} ${sch.time ? '<br><span class="text-xs text-gray-450">' + sch.time + '</span>' : ''}</td>
+                <td class="py-3 pr-4 font-medium">${escapeHtml(sch.subjectName)}</td>
+                <td class="py-3 pr-4 text-gray-600">${escapeHtml(sch.fileName)}</td>
+                <td class="py-3 pr-4">${sch.startPage} ~ ${sch.endPage} 頁</td>
+                <td class="py-3 pr-4 font-semibold">${sch.pagesRead} 頁</td>
+                <td class="py-3">
+                    <button onclick="deleteSchedule('${sch.id}')" class="text-gray-400 hover:text-red-600">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    }
+}
 </script>
-
 </body>
 </html>
