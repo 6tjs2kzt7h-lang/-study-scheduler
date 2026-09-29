@@ -95,8 +95,8 @@
                         </div>
 
                         <div>
-                            <label class="text-xs text-slate-500 block mb-1">匯入參考檔案 (可多選 PDF/圖片，自動計算頁數)</label>
-                            <input type="file" id="sub-files" multiple accept=".pdf,.txt" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-150 cursor-pointer">
+                            <label class="text-xs text-slate-500 block mb-1">匯入參考檔案 (可多選 PDF/文字檔，自動計算頁數)</label>
+                            <input type="file" id="sub-files" multiple accept=".pdf,.txt" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                         </div>
 
                         <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl text-sm font-medium transition">建立科目與任務</button>
@@ -214,6 +214,7 @@
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 userData = docSnap.data();
+                if (!userData.subjects) userData.subjects = [];
             } else {
                 userData = {
                     subjects: [
@@ -265,14 +266,14 @@
             if (fileInput.files.length > 0) {
                 const parsed = await parseFiles(fileInput.files);
                 files = parsed.filesData;
-                // 如果沒有填寫目標總頁數，直接用解析出來的檔案總頁數！
+                // 如果沒有手動填寫目標總頁數，直接採用解析出來的檔案總頁數！
                 if (!targetInput) {
                     target = parsed.extraPages;
                 }
             }
 
             if (target <= 0) {
-                alert("請至少輸入目標頁數，或上傳能自動解析頁數的 PDF 檔案！");
+                alert("請至少輸入目標頁數，或上傳能自動解析頁數的檔案！");
                 return;
             }
 
@@ -336,51 +337,55 @@
             document.getElementById('kpi-avg-progress').textContent = avgProg + '%';
 
             const listEl = document.getElementById('subject-list');
-            listEl.innerHTML = userData.subjects.map(s => {
-                const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
-                const countdownText = calculateCountdown(s.examDate);
-                
-                let filesHtml = '';
-                if (s.files && s.files.length > 0) {
-                    filesHtml = `<div class="text-xs text-indigo-600 bg-indigo-50 p-2.5 rounded-xl space-y-1 border border-indigo-100">
-                        <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-paperclip"></i> 已匯入的檔案 (${s.files.length}個)：</div>
-                        ${s.files.map(f => `<div class="truncate flex justify-between"><span>📄 ${f.name}</span> <span class="font-semibold text-indigo-700">${f.pages}頁</span></div>`).join('')}
-                    </div>`;
-                }
+            if (userData.subjects.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">目前尚無科目，請從上方新增。</p>`;
+            } else {
+                listEl.innerHTML = userData.subjects.map(s => {
+                    const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
+                    const countdownText = calculateCountdown(s.examDate);
+                    
+                    let filesHtml = '';
+                    if (s.files && s.files.length > 0) {
+                        filesHtml = `<div class="text-xs text-indigo-600 bg-indigo-50 p-2.5 rounded-xl space-y-1 border border-indigo-100">
+                            <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-paperclip"></i> 已匯入的檔案 (${s.files.length}個)：</div>
+                            ${s.files.map(f => `<div class="truncate flex justify-between"><span>📄 ${f.name}</span> <span class="font-semibold text-indigo-700">${f.pages}頁</span></div>`).join('')}
+                        </div>`;
+                    }
 
-                return `
-                    <div class="p-4 bg-slate-50 rounded-2xl space-y-3 border border-slate-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-base">${s.name}</h4>
-                                ${countdownText ? `<span class="inline-block px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full mt-1"><i class="fa-solid fa-clock"></i> ${countdownText} (${s.examDate})</span>` : ''}
+                    return `
+                        <div class="p-4 bg-slate-50 rounded-2xl space-y-3 border border-slate-100">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-base">${s.name}</h4>
+                                    ${countdownText ? `<span class="inline-block px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full mt-1"><i class="fa-solid fa-clock"></i> ${countdownText} (${s.examDate})</span>` : ''}
+                                </div>
+                                <button onclick="deleteSubject(${s.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
                             </div>
-                            <button onclick="deleteSubject(${s.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
+
+                            ${filesHtml}
+
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs text-slate-500">
+                                    <span>讀書進度條</span>
+                                    <span class="font-bold text-slate-700">${s.current} / ${s.target} 頁 (${percent}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                                    <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <span class="text-xs text-slate-500 whitespace-nowrap">讀到第幾頁：</span>
+                                <input type="number" value="${s.current}" min="0" max="${s.target}" onchange="updateProgressDirect(${s.id}, this.value)" class="w-20 px-2 py-1 text-xs border rounded-lg bg-white font-medium text-center focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <div class="flex gap-1 ml-auto">
+                                    <button onclick="updateProgress(${s.id}, 5)" class="bg-white border hover:bg-slate-100 text-xs px-2 py-1 rounded shadow-sm">+5</button>
+                                    <button onclick="updateProgress(${s.id}, 10)" class="bg-white border hover:bg-slate-100 text-xs px-2 py-1 rounded shadow-sm">+10</button>
+                                </div>
+                            </div>
                         </div>
-
-                        ${filesHtml}
-
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs text-slate-500">
-                                <span>讀書進度條</span>
-                                <span class="font-bold text-slate-700">${s.current} / ${s.target} 頁 (${percent}%)</span>
-                            </div>
-                            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                                <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 pt-1">
-                            <span class="text-xs text-slate-500 whitespace-nowrap">讀到第幾頁：</span>
-                            <input type="number" value="${s.current}" min="0" max="${s.target}" onchange="updateProgressDirect(${s.id}, this.value)" class="w-20 px-2 py-1 text-xs border rounded-lg bg-white font-medium text-center focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <div class="flex gap-1 ml-auto">
-                                <button onclick="updateProgress(${s.id}, 5)" class="bg-white border hover:bg-slate-100 text-xs px-2 py-1 rounded shadow-sm">+5</button>
-                                <button onclick="updateProgress(${s.id}, 10)" class="bg-white border hover:bg-slate-100 text-xs px-2 py-1 rounded shadow-sm">+10</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            }
 
             const days = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
             const tbody = document.getElementById('schedule-table-body');
