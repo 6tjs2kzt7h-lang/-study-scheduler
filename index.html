@@ -3,1674 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 週/日讀書排程規劃器</title>
-
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --success-color: #10b981;
-            --info-color: #0284c7;
-            --warning-color: #f59e0b;
-            --radius: 12px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont,
-                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 2rem 1rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 760px;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            text-align: center;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.25rem 1.5rem;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .kpi-card {
-            text-align: center;
-            padding: 1rem;
-            background-color: #f1f5f9;
-            border-radius: var(--radius);
-        }
-
-        .kpi-title {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-        }
-
-        .kpi-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        details {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            overflow: hidden;
-        }
-
-        summary {
-            padding: 1rem 1.25rem;
-            font-weight: 600;
-            cursor: pointer;
-            user-select: none;
-            background-color: #f8fafc;
-        }
-
-        summary:hover {
-            background-color: #f1f5f9;
-        }
-
-        .tabs-header {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            background: #f8fafc;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--text-muted);
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            background: #fff;
-        }
-
-        .tab-content {
-            padding: 1.25rem;
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 0.4rem;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="time"],
-        select {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        input:focus,
-        select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-        }
-
-        .row-3 {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 0.75rem;
-        }
-
-        .row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 0.65rem 1rem;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-
-        .alert-info {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-        }
-
-        .subject-item {
-            margin-bottom: 1rem;
-        }
-
-        .subject-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.95rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .progress-bar-bg {
-            height: 10px;
-            background-color: #e2e8f0;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background-color: var(--primary-color);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .weekday-picker {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .weekday-picker label {
-            flex: 1;
-            min-width: 80px;
-            text-align: center;
-            background: #f1f5f9;
-            padding: 0.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            margin: 0;
-            transition: all 0.2s;
-        }
-
-        .weekday-picker input[type="radio"] {
-            display: none;
-        }
-
-        .weekday-picker input[type="radio"]:checked + span {
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .weekday-picker label:has(input[type="radio"]:checked) {
-            background-color: #dbeafe;
-            border: 1px solid var(--primary-color);
-        }
-
-        .schedule-item {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .schedule-study {
-            background-color: #dcfce7;
-            color: #15803d;
-            border-left: 4px solid var(--success-color);
-        }
-
-        .schedule-free {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            border-left: 4px solid var(--info-color);
-        }
-
-        hr {
-            border: 0;
-            border-top: 1px solid var(--border-color);
-            margin: 1rem 0;
-        }
-
-        @media (max-width: 600px) {
-            .row-3 {
-                grid-template-columns: 1fr;
-            }
-
-            .row-2 {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                max-width: 100%;
-            }
-
-            body {
-                padding: 1rem 0.5rem;
-            }
-
-            .card {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <title>雲端多人版 - 週/日讀書排程規劃器</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
 
-<body>
+    <!-- 登入驗證遮罩 / 頁首控制列 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up"></i> 雲端讀書排程規劃器
+            </h1>
+            <div id="auth-section" class="flex items-center gap-4">
+                <!-- 動態顯示登入狀態 -->
+                <span id="user-info" class="text-sm text-slate-600 hidden"></span>
+                <button id="login-btn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-brands fa-google"></i> Google 登入
+                </button>
+                <button id="logout-btn" onclick="logout()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                    登出
+                </button>
+            </div>
+        </div>
+    </header>
 
-<div class="container">
-
-    <h1>📅 週與每日半小時讀書排程</h1>
-
-    <!-- KPI -->
-    <div class="kpi-grid">
-
-        <div class="kpi-card">
-            <div class="kpi-title">📚 追蹤科目數</div>
-            <div class="kpi-value" id="kpi-subs">0 科</div>
+    <!-- 主容器 -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- 未登入提示 -->
+        <div id="login-prompt" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-8 text-center my-12">
+            <i class="fa-solid fa-lock text-4xl text-indigo-500 mb-4"></i>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">請先登入以開始使用</h2>
+            <p class="text-slate-600 mb-6">登入後即可在雲端同步你的讀書進度與專屬排程，多裝置隨時存取！</p>
+            <button onclick="loginWithGoogle()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium shadow-md transition inline-flex items-center gap-2">
+                <i class="fa-brands fa-google"></i> 使用 Google 帳號立即登入
+            </button>
         </div>
 
-        <div class="kpi-card">
-            <div class="kpi-title">📊 整體平均進度</div>
-            <div class="kpi-value" id="kpi-avg">0.0%</div>
-        </div>
+        <!-- 登入後顯示的主內容 -->
+        <div id="app-content" class="hidden space-y-6">
+            
+            <!-- KPI 儀表板 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">總科目數</p>
+                        <h3 id="kpi-total-subjects" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-xl"><i class="fa-solid fa-book"></i></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">已完成總頁數</p>
+                        <h3 id="kpi-completed-pages" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl"><i class="fa-solid fa-check-double"></i></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">平均進度</p>
+                        <h3 id="kpi-avg-progress" class="text-2xl font-bold text-blue-600 mt-1">0%</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl"><i class="fa-solid fa-chart-pie"></i></div>
+                </div>
+            </div>
 
-    </div>
-
-
-    <!-- 新增 / 管理科目 -->
-
-    <details>
-
-        <summary>➕ 新增 / 管理科目</summary>
-
-        <div class="tabs-header">
-
-            <button class="tab-btn active" onclick="switchTab(0)">
-                手動新增
-            </button>
-
-            <button class="tab-btn" onclick="switchTab(1)">
-                檔案上傳
-            </button>
-
-            <button class="tab-btn" onclick="switchTab(2)">
-                管理/刪除科目
-            </button>
-
-        </div>
-
-
-        <!-- 手動新增 -->
-
-        <div class="tab-content active" id="tab-0">
-
-            <div class="row-3">
-
-                <div class="form-group">
-                    <label>科目名稱</label>
-                    <input
-                        type="text"
-                        id="manual-name"
-                        placeholder="例：英文">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 左側：科目管理 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-600"></i> 科目與進度管理
+                    </h2>
+                    <form id="subject-form" onsubmit="addSubject(event)" class="space-y-3">
+                        <input type="text" id="sub-name" placeholder="科目名稱 (例如：微積分)" required class="w-full px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <div class="flex gap-2">
+                            <input type="number" id="sub-target" placeholder="總頁數" required min="1" class="w-1/2 px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="number" id="sub-current" placeholder="已讀頁數" value="0" min="0" class="w-1/2 px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-xl text-sm font-medium transition">新增科目</button>
+                    </form>
+                    <div id="subject-list" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                        <!-- 動態插入科目 -->
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>已讀頁數</label>
-                    <input
-                        type="number"
-                        id="manual-curr"
-                        value="0"
-                        min="0">
+                <!-- 右側：排程與工具 -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-indigo-600"></i> 本週讀書排程表
+                        </h2>
+                        <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
+                            <i class="fa-solid fa-download"></i> 匯出 CSV
+                        </button>
+                    </div>
+                    <!-- 排程表格 -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b text-xs text-slate-400 uppercase">
+                                    <th class="py-2 px-3">星期</th>
+                                    <th class="py-2 px-3">時段分配</th>
+                                    <th class="py-2 px-3">預計科目</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body" class="text-sm divide-y">
+                                <!-- 動態排程 -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>總頁數</label>
-                    <input
-                        type="number"
-                        id="manual-tot"
-                        value="50"
-                        min="1">
-                </div>
-
             </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="addManualSubject()">
-                確認新增科目
-            </button>
-
         </div>
-
-
-        <!-- 檔案上傳 -->
-
-        <div class="tab-content" id="tab-1">
-
-            <div class="form-group">
-
-                <label>
-                    上傳教材檔案 (PDF/EPUB/TXT)
-                </label>
-
-                <input
-                    type="file"
-                    id="file-input"
-                    accept=".pdf,.epub,.txt">
-
-            </div>
-
-            <div class="row-2">
-
-                <div class="form-group">
-                    <label>該檔案已讀頁數</label>
-
-                    <input
-                        type="number"
-                        id="file-curr"
-                        value="0"
-                        min="0">
-                </div>
-
-                <div class="form-group">
-                    <label>該檔案總頁數</label>
-
-                    <input
-                        type="number"
-                        id="file-tot"
-                        value="50"
-                        min="1">
-                </div>
-
-            </div>
-
-            <button
-                class="btn btn-primary"
-                onclick="addFileSubject()">
-                匯入檔案為科目
-            </button>
-
-        </div>
-
-
-        <!-- 刪除科目 -->
-
-        <div class="tab-content" id="tab-2">
-
-            <div class="form-group">
-
-                <label>選擇要刪除的科目：</label>
-
-                <select id="delete-select"></select>
-
-            </div>
-
-            <button
-                class="btn btn-danger"
-                onclick="deleteSubject()">
-                🗑️ 刪除科目
-            </button>
-
-        </div>
-
-    </details>
-
-
-    <!-- 各科進度 -->
-
-    <div class="card">
-
-        <h3 style="margin-bottom: 1rem;">
-            📖 各科進度總覽
-        </h3>
-
-        <div id="priority-alert"></div>
-
-        <div id="subjects-list"></div>
-
-    </div>
-
-
-    <!-- 星期時間規劃 -->
-
-    <div class="card">
-
-        <h3 style="margin-bottom: 1rem;">
-            🗓️ 選擇星期進行 0.5 小時排程
-        </h3>
-
-        <div
-            class="weekday-picker"
-            id="weekday-picker">
-        </div>
-
-
-        <div class="row-2">
-
-            <div class="form-group">
-
-                <label id="start-time-label">
-                    開始時間
-                </label>
-
-                <input
-                    type="time"
-                    id="start-time"
-                    value="18:00"
-                    onchange="updateScheduleConfig()">
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label id="end-time-label">
-                    結束時間
-                </label>
-
-                <input
-                    type="time"
-                    id="end-time"
-                    value="22:00"
-                    onchange="updateScheduleConfig()">
-
-            </div>
-
-        </div>
-
-
-        <div
-            style="
-                font-size:0.85rem;
-                color:var(--text-muted);
-                margin-bottom:1rem;
-            "
-            id="time-caption">
-
-            ⏱️ 當天可排程時間：
-            共 4.0 小時（8 個 0.5 小時區塊）
-
-        </div>
-
-
-        <button
-            class="btn btn-primary"
-            id="gen-btn"
-            onclick="generateSchedule()">
-
-            ⚡ 生成半小時進度排程
-
-        </button>
-
-
-        <div id="schedule-output"></div>
-
-    </div>
-
-</div>
-
-
-<script>
-
-    // ==============================
-    // 基本資料
-    // ==============================
-
-    const weekdays = [
-        "星期一",
-        "星期二",
-        "星期三",
-        "星期四",
-        "星期五",
-        "星期六",
-        "星期日"
-    ];
-
-
-    let subjects =
-        JSON.parse(localStorage.getItem("subjects")) || [
-
-            {
-                name: "微積分",
-                current: 20,
-                total: 100
-            },
-
-            {
-                name: "普通物理",
-                current: 40,
-                total: 80
-            }
-
-        ];
-
-
-    let scheduleConfig =
-        JSON.parse(
-            localStorage.getItem("scheduleConfig")
-        ) || {
-
-            "星期一": {
-                start: "18:00",
-                end: "22:00"
-            },
-
-            "星期二": {
-                start: "18:00",
-                end: "22:00"
-            },
-
-            "星期三": {
-                start: "18:00",
-                end: "22:00"
-            },
-
-            "星期四": {
-                start: "18:00",
-                end: "22:00"
-            },
-
-            "星期五": {
-                start: "18:00",
-                end: "22:00"
-            },
-
-            "星期六": {
-                start: "18:00",
-                end: "22:00"
-            },
-
-            "星期日": {
-                start: "18:00",
-                end: "22:00"
-            }
-
+    </main>
+
+    <!-- Firebase SDK 引入與邏輯 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase 專案設定（已自動填好）
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHJ8Gt2vAyDEvKDQDr1AhhLVBSYZHjc",
+            authDomain: "study-scheduler-21d31.firebaseapp.com",
+            projectId: "study-scheduler-21d31",
+            storageBucket: "study-scheduler-21d31.firebasestorage.app",
+            messagingSenderId: "397621309129",
+            appId: "1:397621309129:web:e4a035549565dd6ef7e718",
+            measurementId: "G-MTP5PRY1F6"
         };
 
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-    let selectedDay = "星期一";
+        let currentUser = null;
+        let userData = { subjects: [], schedule: {} };
 
-    let generatedSchedules = {};
+        // 監聽登入狀態
+        onAuthStateChanged(auth, async (user) => {
+            const loginPrompt = document.getElementById('login-prompt');
+            const appContent = document.getElementById('app-content');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
 
+            if (user) {
+                currentUser = user;
+                loginPrompt.classList.add('hidden');
+                appContent.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                userInfo.textContent = `Hi, ${user.displayName || user.email}`;
+                userInfo.classList.remove('hidden');
 
-    // ==============================
-    // 儲存資料
-    // ==============================
+                // 從 Firestore 讀取該使用者的資料
+                await loadUserData();
+            } else {
+                currentUser = null;
+                loginPrompt.classList.remove('hidden');
+                appContent.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                userInfo.classList.add('hidden');
+            }
+        });
 
-    function saveData() {
-
-        localStorage.setItem(
-            "subjects",
-            JSON.stringify(subjects)
-        );
-
-        localStorage.setItem(
-            "scheduleConfig",
-            JSON.stringify(scheduleConfig)
-        );
-
-    }
-
-
-    // ==============================
-    // 初始化
-    // ==============================
-
-    window.onload = function () {
-
-        renderWeekdays();
-
-        renderAll();
-
-    };
-
-
-    function renderAll() {
-
-        renderKPI();
-
-        renderSubjects();
-
-        renderDeleteOptions();
-
-        renderTimeInputs();
-
-        renderScheduleOutput();
-
-        saveData();
-
-    }
-
-
-    // ==============================
-    // Tab 切換
-    // ==============================
-
-    function switchTab(index) {
-
-        document
-            .querySelectorAll(".tab-btn")
-            .forEach(function(btn, i) {
-
-                btn.classList.toggle(
-                    "active",
-                    i === index
-                );
-
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider).catch((error) => {
+                alert("登入失敗：" + error.message);
             });
+        };
 
+        window.logout = function() {
+            signOut(auth);
+        };
 
-        document
-            .querySelectorAll(".tab-content")
-            .forEach(function(content, i) {
-
-                content.classList.toggle(
-                    "active",
-                    i === index
-                );
-
-            });
-
-    }
-
-
-    // ==============================
-    // 星期選單
-    // ==============================
-
-    function renderWeekdays() {
-
-        const container =
-            document.getElementById(
-                "weekday-picker"
-            );
-
-
-        container.innerHTML =
-            weekdays.map(function(day) {
-
-                return `
-                    <label>
-
-                        <input
-                            type="radio"
-                            name="weekday"
-                            value="${day}"
-                            ${day === selectedDay
-                                ? "checked"
-                                : ""}
-                            onchange="changeDay('${day}')">
-
-                        <span>${day}</span>
-
-                    </label>
-                `;
-
-            }).join("");
-
-    }
-
-
-    function changeDay(day) {
-
-        selectedDay = day;
-
-        renderTimeInputs();
-
-        renderScheduleOutput();
-
-    }
-
-
-    // ==============================
-    // KPI
-    // ==============================
-
-    function renderKPI() {
-
-        const total = subjects.length;
-
-
-        const avg =
-            total > 0
-                ? (
-                    subjects.reduce(
-                        function(sum, s) {
-
-                            return sum +
-                                (
-                                    s.current /
-                                    s.total
-                                );
-
-                        },
-                        0
-                    ) / total
-                ) * 100
-                : 0;
-
-
-        document.getElementById(
-            "kpi-subs"
-        ).innerText =
-            `${total} 科`;
-
-
-        document.getElementById(
-            "kpi-avg"
-        ).innerText =
-            `${avg.toFixed(1)}%`;
-
-    }
-
-
-    // ==============================
-    // 科目進度
-    // ==============================
-
-    function renderSubjects() {
-
-        const alertBox =
-            document.getElementById(
-                "priority-alert"
-            );
-
-
-        const listContainer =
-            document.getElementById(
-                "subjects-list"
-            );
-
-
-        if (subjects.length === 0) {
-
-            alertBox.innerHTML = "";
-
-            listContainer.innerHTML =
-                `<p style="color:var(--text-muted);">
-                    目前尚無科目，請先點擊上方新增。
-                </p>`;
-
-            return;
-
+        async function loadUserData() {
+            if (!currentUser) return;
+            const docRef = doc(db, "schedules", currentUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                userData = docSnap.data();
+            } else {
+                // 預設初次資料
+                userData = {
+                    subjects: [
+                        { id: 1, name: "範例：國文", target: 100, current: 30 },
+                        { id: 2, name: "範例：英文", target: 150, current: 60 }
+                    ],
+                    schedule: {}
+                };
+                await saveUserData();
+            }
+            renderApp();
         }
 
-
-        const uncompleted =
-            subjects.filter(function(s) {
-
-                return s.current < s.total;
-
-            });
-
-
-        if (uncompleted.length > 0) {
-
-            uncompleted.sort(function(a, b) {
-
-                return (
-                    a.current / a.total
-                ) -
-                (
-                    b.current / b.total
-                );
-
-            });
-
-
-            const lowest =
-                uncompleted[0];
-
-
-            const pct =
-                (
-                    lowest.current /
-                    lowest.total *
-                    100
-                ).toFixed(1);
-
-
-            alertBox.innerHTML =
-                `<div class="alert-info">
-
-                    💡 目前優先衝刺：
-                    <strong>${lowest.name}</strong>
-
-                    （進度 ${pct}%），
-                    系統將優先排程！
-
-                </div>`;
-
-        } else {
-
-            alertBox.innerHTML =
-                `<div
-                    class="alert-info"
-                    style="
-                        background:#dcfce7;
-                        color:#15803d;
-                    "
-                >
-                    🎉 太棒了！
-                    所有科目皆已完成預定進度！
-                </div>`;
-
+        async function saveUserData() {
+            if (!currentUser) return;
+            const docRef = doc(db, "schedules", currentUser.uid);
+            await setDoc(docRef, userData);
         }
 
+        window.addSubject = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('sub-name').value;
+            const target = parseInt(document.getElementById('sub-target').value);
+            const current = parseInt(document.getElementById('sub-current').value) || 0;
 
-        listContainer.innerHTML =
-            subjects.map(function(s) {
+            userData.subjects.push({ id: Date.now(), name, target, current });
+            document.getElementById('subject-form').reset();
+            await saveUserData();
+            renderApp();
+        }
 
-                const pct =
-                    Math.min(
-                        100,
-                        (
-                            s.current /
-                            s.total
-                        ) * 100
-                    );
+        window.updateProgress = async function(id, delta) {
+            const sub = userData.subjects.find(s => s.id === id);
+            if (sub) {
+                sub.current = Math.max(0, Math.min(sub.target, sub.current + delta));
+                await saveUserData();
+                renderApp();
+            }
+        }
 
+        window.deleteSubject = async function(id) {
+            userData.subjects = userData.subjects.filter(s => s.id !== id);
+            await saveUserData();
+            renderApp();
+        }
 
+        function renderApp() {
+            // KPI 計算
+            const totalSub = userData.subjects.length;
+            const totalPages = userData.subjects.reduce((sum, s) => sum + s.current, 0);
+            const totalTarget = userData.subjects.reduce((sum, s) => sum + s.target, 0);
+            const avgProg = totalTarget > 0 ? Math.round((totalPages / totalTarget) * 100) : 0;
+
+            document.getElementById('kpi-total-subjects').textContent = totalSub;
+            document.getElementById('kpi-completed-pages').textContent = totalPages;
+            document.getElementById('kpi-avg-progress').textContent = avgProg + '%';
+
+            // 渲染科目清單
+            const listEl = document.getElementById('subject-list');
+            listEl.innerHTML = userData.subjects.map(s => {
+                const percent = s.target > 0 ? Math.round((s.current / s.target) * 100) : 0;
                 return `
-                    <div class="subject-item">
-
-                        <div class="subject-info">
-
-                            <span>
-                                <strong>
-                                    ${s.name}
-                                </strong>
-                            </span>
-
-                            <span>
-                                ${s.current}
-                                /
-                                ${s.total}
-                                頁
-                                (${pct.toFixed(1)}%)
-                            </span>
-
-                        </div>
-
-
-                        <div class="progress-bar-bg">
-
-                            <div
-                                class="progress-bar-fill"
-                                style="width:${pct}%">
+                    <div class="p-3 bg-slate-50 rounded-xl space-y-2 border border-slate-100">
+                        <div class="flex justify-between items-center text-sm font-semibold">
+                            <span>${s.name}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-500">${s.current} / ${s.target} 頁 (${percent}%)</span>
+                                <button onclick="deleteSubject(${s.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash text-xs"></i></button>
                             </div>
-
                         </div>
-
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${percent}%"></div>
+                        </div>
+                        <div class="flex gap-1 pt-1">
+                            <button onclick="updateProgress(${s.id}, 5)" class="flex-1 bg-white border hover:bg-slate-100 text-xs py-1 rounded shadow-sm">+5 頁</button>
+                            <button onclick="updateProgress(${s.id}, 10)" class="flex-1 bg-white border hover:bg-slate-100 text-xs py-1 rounded shadow-sm">+10 頁</button>
+                            <button onclick="updateProgress(${s.id}, -5)" class="flex-1 bg-white border hover:bg-slate-100 text-xs py-1 rounded shadow-sm">-5 頁</button>
+                        </div>
                     </div>
                 `;
+            }).join('');
 
-            }).join("");
-
-    }
-
-
-    // ==============================
-    // 刪除科目選單
-    // ==============================
-
-    function renderDeleteOptions() {
-
-        const select =
-            document.getElementById(
-                "delete-select"
-            );
-
-
-        if (subjects.length === 0) {
-
-            select.innerHTML =
-                `<option value="">
-                    目前無科目
-                </option>`;
-
-        } else {
-
-            select.innerHTML =
-                subjects.map(function(s) {
-
-                    return `
-                        <option value="${s.name}">
-                            ${s.name}
-                        </option>
-                    `;
-
-                }).join("");
-
+            // 渲染排程表格
+            const days = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
+            const tbody = document.getElementById('schedule-table-body');
+            tbody.innerHTML = days.map((day, idx) => {
+                const assignedSub = userData.subjects.length > 0 ? userData.subjects[idx % userData.subjects.length].name : "尚未新增科目";
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-3 font-medium text-slate-700">${day}</td>
+                        <td class="py-3 px-3 text-slate-500">19:00 - 21:00 (2小時)</td>
+                        <td class="py-3 px-3 font-semibold text-indigo-600">${assignedSub}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-    }
-
-
-    // ==============================
-    // 時間設定
-    // ==============================
-
-    function renderTimeInputs() {
-
-        const cfg =
-            scheduleConfig[selectedDay];
-
-
-        document.getElementById(
-            "start-time-label"
-        ).innerText =
-            `${selectedDay} 開始時間`;
-
-
-        document.getElementById(
-            "end-time-label"
-        ).innerText =
-            `${selectedDay} 結束時間`;
-
-
-        document.getElementById(
-            "start-time"
-        ).value =
-            cfg.start;
-
-
-        document.getElementById(
-            "end-time"
-        ).value =
-            cfg.end;
-
-
-        document.getElementById(
-            "gen-btn"
-        ).innerText =
-            `⚡ 生成 ${selectedDay} 的半小時進度排程`;
-
-
-        calculateBlocks();
-
-    }
-
-
-    function updateScheduleConfig() {
-
-        scheduleConfig[selectedDay].start =
-            document.getElementById(
-                "start-time"
-            ).value;
-
-
-        scheduleConfig[selectedDay].end =
-            document.getElementById(
-                "end-time"
-            ).value;
-
-
-        calculateBlocks();
-
-        saveData();
-
-    }
-
-
-    function calculateBlocks() {
-
-        const start =
-            document.getElementById(
-                "start-time"
-            ).value;
-
-
-        const end =
-            document.getElementById(
-                "end-time"
-            ).value;
-
-
-        const [sH, sM] =
-            start.split(":").map(Number);
-
-
-        const [eH, eM] =
-            end.split(":").map(Number);
-
-
-        const startMin =
-            sH * 60 + sM;
-
-
-        const endMin =
-            eH * 60 + eM;
-
-
-        const caption =
-            document.getElementById(
-                "time-caption"
-            );
-
-
-        if (endMin <= startMin) {
-
-            caption.innerText =
-                "❌ 結束時間必須晚於開始時間！";
-
-
-            caption.style.color =
-                "#ef4444";
-
-
-            return -1;
-
-        }
-
-
-        const totalMin =
-            endMin - startMin;
-
-
-        const blocks =
-            Math.floor(
-                totalMin / 30
-            );
-
-
-        caption.innerText =
-            `⏱️ 當天可排程時間：
-            共 ${(totalMin / 60).toFixed(1)}
-            小時（${blocks} 個 0.5 小時區塊）`;
-
-
-        caption.style.color =
-            "var(--text-muted)";
-
-
-        return blocks;
-
-    }
-
-
-    // ==============================
-    // 新增科目
-    // ==============================
-
-    function addManualSubject() {
-
-        const name =
-            document.getElementById(
-                "manual-name"
-            ).value.trim();
-
-
-        const curr =
-            parseInt(
-                document.getElementById(
-                    "manual-curr"
-                ).value
-            ) || 0;
-
-
-        const tot =
-            parseInt(
-                document.getElementById(
-                    "manual-tot"
-                ).value
-            ) || 1;
-
-
-        if (!name) {
-
-            alert("請輸入科目名稱！");
-
-            return;
-
-        }
-
-
-        if (
-            subjects.some(function(s) {
-                return s.name === name;
-            })
-        ) {
-
-            alert("已有相同名稱的科目！");
-
-            return;
-
-        }
-
-
-        subjects.push({
-            name: name,
-            current: curr,
-            total: tot
-        });
-
-
-        document.getElementById(
-            "manual-name"
-        ).value = "";
-
-
-        renderAll();
-
-    }
-
-
-    // ==============================
-    // 檔案新增
-    // ==============================
-
-    function addFileSubject() {
-
-        const fileInput =
-            document.getElementById(
-                "file-input"
-            );
-
-
-        const curr =
-            parseInt(
-                document.getElementById(
-                    "file-curr"
-                ).value
-            ) || 0;
-
-
-        const tot =
-            parseInt(
-                document.getElementById(
-                    "file-tot"
-                ).value
-            ) || 1;
-
-
-        if (!fileInput.files.length) {
-
-            alert("請選擇檔案！");
-
-            return;
-
-        }
-
-
-        const fileName =
-            fileInput.files[0]
-                .name
-                .replace(/\.[^/.]+$/, "");
-
-
-        if (
-            subjects.some(function(s) {
-                return s.name === fileName;
-            })
-        ) {
-
-            alert("已有相同名稱的科目！");
-
-            return;
-
-        }
-
-
-        subjects.push({
-            name: fileName,
-            current: curr,
-            total: tot
-        });
-
-
-        fileInput.value = "";
-
-        renderAll();
-
-    }
-
-
-    // ==============================
-    // 刪除科目
-    // ==============================
-
-    function deleteSubject() {
-
-        const name =
-            document.getElementById(
-                "delete-select"
-            ).value;
-
-
-        if (!name) return;
-
-
-        subjects =
-            subjects.filter(function(s) {
-
-                return s.name !== name;
-
+        window.exportCSV = function() {
+            let csv = '\uFEFF星期,時段,科目\n';
+            const days = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
+            days.forEach((day, idx) => {
+                const sub = userData.subjects.length > 0 ? userData.subjects[idx % userData.subjects.length].name : "無";
+                csv += `${day},19:00 - 21:00,${sub}\n`;
             });
-
-
-        renderAll();
-
-    }
-
-
-    // ==============================
-    // 產生排程
-    // ==============================
-
-    function generateSchedule() {
-
-        const blocks =
-            calculateBlocks();
-
-
-        if (blocks <= 0) {
-
-            alert(
-                "請設定正確的時間範圍！"
-            );
-
-            return;
-
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'study_schedule.csv';
+            a.click();
         }
-
-
-        if (subjects.length === 0) {
-
-            alert(
-                "請先新增科目才能生成排程！"
-            );
-
-            return;
-
-        }
-
-
-        let simSubs =
-            JSON.parse(
-                JSON.stringify(subjects)
-            );
-
-
-        let [currH, currM] =
-            document
-                .getElementById(
-                    "start-time"
-                )
-                .value
-                .split(":")
-                .map(Number);
-
-
-        const scheduleList = [];
-
-
-        for (
-            let i = 0;
-            i < blocks;
-            i++
-        ) {
-
-            const tStart =
-                `${String(currH).padStart(2, "0")}:
-                ${String(currM).padStart(2, "0")}`
-                .replace(/\s/g, "");
-
-
-            currM += 30;
-
-
-            if (currM >= 60) {
-
-                currH +=
-                    Math.floor(
-                        currM / 60
-                    );
-
-                currM %= 60;
-
-            }
-
-
-            const tEnd =
-                `${String(currH).padStart(2, "0")}:
-                ${String(currM).padStart(2, "0")}`
-                .replace(/\s/g, "");
-
-
-            let activeSubs =
-                simSubs.filter(function(s) {
-
-                    return s.current < s.total;
-
-                });
-
-
-            if (
-                activeSubs.length === 0
-            ) {
-
-                scheduleList.push({
-
-                    time:
-                        `${tStart} - ${tEnd}`,
-
-                    subject:
-                        "🎉 自由時間 / 複習",
-
-                    note:
-                        "所有科目皆已達目標頁數！",
-
-                    isFree: true
-
-                });
-
-            } else {
-
-                activeSubs.sort(
-                    function(a, b) {
-
-                        return (
-                            a.current /
-                            a.total
-                        ) -
-                        (
-                            b.current /
-                            b.total
-                        );
-
-                    }
-                );
-
-
-                let target =
-                    activeSubs[0];
-
-
-                target.current =
-                    Math.min(
-                        target.total,
-                        target.current + 5
-                    );
-
-
-                let newPct =
-                    (
-                        target.current /
-                        target.total *
-                        100
-                    ).toFixed(0);
-
-
-                scheduleList.push({
-
-                    time:
-                        `${tStart} - ${tEnd}`,
-
-                    subject:
-                        target.name,
-
-                    note:
-                        `預計 +5 頁 ➔ 進度達 ${newPct}%`,
-
-                    isFree: false
-
-                });
-
-            }
-
-        }
-
-
-        generatedSchedules[selectedDay] =
-            scheduleList;
-
-
-        renderScheduleOutput();
-
-    }
-
-
-    // ==============================
-    // 顯示排程
-    // ==============================
-
-    function renderScheduleOutput() {
-
-        const container =
-            document.getElementById(
-                "schedule-output"
-            );
-
-
-        const list =
-            generatedSchedules[selectedDay];
-
-
-        if (
-            !list ||
-            list.length === 0
-        ) {
-
-            container.innerHTML = "";
-
-            return;
-
-        }
-
-
-        const cfg =
-            scheduleConfig[selectedDay];
-
-
-        let html =
-            `<hr>
-
-            <h3>
-                📋 ${selectedDay}
-                讀書計畫時間表
-                (${cfg.start} - ${cfg.end})
-            </h3>
-
-            <div style="margin-top:1rem;">`;
-
-
-        list.forEach(function(item) {
-
-            if (item.isFree) {
-
-                html +=
-                    `<div class="schedule-item schedule-free">
-
-                        <strong>
-                            ${item.time}
-                        </strong>
-
-                        ｜ ${item.subject}
-
-                        （${item.note}）
-
-                    </div>`;
-
-            } else {
-
-                html +=
-                    `<div class="schedule-item schedule-study">
-
-                        <strong>
-                            ${item.time}
-                        </strong>
-
-                        ｜ 研讀：
-                        <strong>
-                            ${item.subject}
-                        </strong>
-
-                        （${item.note}）
-
-                    </div>`;
-
-            }
-
-        });
-
-
-        html +=
-            `</div>
-
-            <button
-                class="btn btn-primary"
-                style="
-                    margin-top:0.75rem;
-                    background-color:#059669;
-                "
-                onclick="downloadCSV()">
-
-                📥 下載今日排程 CSV
-
-            </button>`;
-
-
-        container.innerHTML =
-            html;
-
-    }
-
-
-    // ==============================
-    // CSV 匯出
-    // ==============================
-
-    function downloadCSV() {
-
-        const list =
-            generatedSchedules[selectedDay];
-
-
-        if (!list) return;
-
-
-        let csvContent =
-            "\uFEFF" +
-            "時間,科目,備註\n";
-
-
-        list.forEach(function(item) {
-
-            csvContent +=
-                `"${item.time}",
-                "${item.subject}",
-                "${item.note}"\n`
-                .replace(/\n\s+/g, "");
-
-        });
-
-
-        const blob =
-            new Blob(
-                [csvContent],
-                {
-                    type:
-                        "text/csv;charset=utf-8;"
-                }
-            );
-
-
-        const url =
-            URL.createObjectURL(blob);
-
-
-        const link =
-            document.createElement("a");
-
-
-        link.setAttribute(
-            "href",
-            url
-        );
-
-
-        link.setAttribute(
-            "download",
-            `${selectedDay}_讀書排程.csv`
-        );
-
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-
-    }
-
-</script>
-
+    </script>
 </body>
 </html>
